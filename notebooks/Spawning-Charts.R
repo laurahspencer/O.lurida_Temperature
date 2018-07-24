@@ -1,7 +1,7 @@
 library(car)
 
 Collection <- read.csv("data/Larvae-collection.csv", header=T, stringsAsFactors = F)
-Collection <- Collection[c(1,2,3,4,6,7,8,9,10,11,12,13)]
+Collection <- Collection[c(1,2,3,4,5,6,7,8,9,10,11,12,13)]
 Collection$Date.collected <- as.Date(Collection$Date.collected, format = "%m/%d/%y")
 Collection$Treatment <- as.factor(Collection$Treatment)
 Collection$Bag.. <- as.factor(Collection$Bag..)
@@ -18,9 +18,9 @@ Collection$Dead.Larvae <- (rowMeans(subset(Collection, select = c("Count.A.DEAD"
 Collection$Live.Larvae.norm <- Collection$Live.Larvae/Collection$Broodstock
 Collection <- merge(x=Collection, y=unique(survival[,c("TRT.REP", "TEMP", "FOOD")]), by.x = "Treatment", by.y = "TRT.REP", all.x=T, all.y=FALSE)
 Collection$TREAT <- as.factor(paste(Collection$TEMP, "-", Collection$FOOD))
-colnames(Collection) <- c("Rep", "Date", "Bag", "Broodstock", "Vol.sampled", "Vol.total", "Live.A", "Dead.A", "Live.B", "Dead.B", "Live.C", "Dead.C", "Live.Larvae", "Dead.Larvae", "Live.Larvae.norm" ,"TEMP", "FOOD", "TREAT")
-
-summary(Collection$Date)
+colnames(Collection) <- c("Rep", "Date", "Bag", "Broodstock", "Group", "Vol.sampled", "Vol.total", "Live.A", "Dead.A", "Live.B", "Dead.B", "Live.C", "Dead.C", "Live.Larvae", "Dead.Larvae", "Live.Larvae.norm" ,"TEMP", "FOOD", "TREAT")
+Collection$Perc.live <- (Collection$Live.Larvae/(Collection$Dead.Larvae + Collection$Live.Larvae))*100
+survival
 treat_total <- aggregate(cbind(Live.Larvae, Live.Larvae.norm) ~ Date + TREAT + TEMP + FOOD, data = Collection, sum, na.rm = TRUE)
 
 #Calculate cumulative larvae released through time
