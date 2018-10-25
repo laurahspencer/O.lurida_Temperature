@@ -24,13 +24,25 @@ survival$TREAT <- as.factor(paste(survival$TEMP, "-", survival$FOOD))
 summary(100*(na.omit(survival$Live.50.days)/(800*3)))
 
 plot(Live.50.days/(3*800) ~ Date.stocked, data=survival, col=TREAT, pch=8)
+
+jpeg(file="results/boxplot-survival.jpeg", width = 900, height = 600)
 plot(Live.50.days/(3*800) ~ TREAT, data=survival, col=c("skyblue3", "seagreen3", "indianred2",  "orange1"), main="Mean % survival across 12 groups per treatment", xlab="Treatment", ylab="Mean % survival", cex.lab=1.5, cex.main=1.5, par(mar=c(5,5,4.1,2.1)))
+dev.off()
 
-levels(survival$TRT.REP) <- c("C1", "C2", "A1", "A2", "D1", "D2", "B1", "B2")
-plot(Live.50.days/(3*800) ~ TRT.REP, data=survival, col=c("skyblue3", "skyblue3", "seagreen3", "seagreen3", "indianred2",  "indianred2",  "orange1","orange1"), main="Mean % survival between treatment rep\n6 groups per rep", xlab="Treatment", ylab="Mean % survival", cex.lab=1.5, cex.main=1.5, par(mar=c(5,5,4.1,2.1)))
+#levels(survival$TREAT) #color order ="skyblue3", "seagreen3", "indianred2",  "orange1"
 
-ggplot(survival, aes(x=TREAT, y=100*Live.50.days/(3*800))) + geom_point(size=3, aes(color=TREAT)) + labs(title="Mean % survival, by treatment\n12 groups per treatment", y=("Mean % survival"), x="Treatment replicate") + scale_color_manual(values=c("skyblue3", "seagreen3", "indianred2",  "orange1")) + theme(text = element_text(size = 18)) + theme(axis.title.x=element_blank(), axis.text.x=element_blank(),axis.ticks.x=element_blank()) 
+levels(survival$TRT.REP) <- c("A1\nCOLD-LOW", "A2\nCOLD-LOW",     # A1 and A2
+                              "B1\nWARM-LOW", "B2\nWARM-LOW",     # B1 and B2
+                              "C1\nCOLD-HIGH", "C2\nCOLD-HIGH",   # C1 and C2
+                              "D1\nWARM-HIGH", "D2\nWARM-HIGH")   # D1 and D2
+#levels(survival$TRT.REP) # color order: "seagreen3",  "orange1", skyblue3", "indianred2"
+jpeg(file="results/boxplot-survival-rep.jpeg", width = 900, height = 600)
+plot(Live.50.days/(3*800) ~ TRT.REP, data=survival, col=c("seagreen3", "seagreen3", "orange1","orange1", "skyblue3", "skyblue3", "indianred2",  "indianred2"), main="Mean % survival between treatment rep\n6 groups per rep", xlab="Treatment", ylab="Mean % survival", cex.lab=1.6, cex.main=1.5, par(mar=c(5,5,4.1,2.1)))
+dev.off()
 
+jpeg(file="results/jitter-survival.jpeg", width = 700, height = 500)
+ggplot(survival, aes(x=TREAT, y=100*Live.50.days/(3*800))) + geom_jitter(width=0.35, size=6, aes(color=TREAT)) + labs(title="Mean % survival, by treatment\n12 groups per treatment", y=("Mean % survival"), x="Treatment replicate") + scale_color_manual(values=c("skyblue3", "seagreen3", "indianred2",  "orange1")) + theme(text = element_text(size = 22)) + theme(axis.title.x=element_blank(), axis.text.x=element_blank(),axis.ticks.x=element_blank()) 
+dev.off()
 
 
 Survival.family.35 <- do.call(data.frame, aggregate(Live.35.days ~ Family+TEMP+FOOD+TRT.REP+TREAT, data = survival, FUN = function(x) c(mean = mean(x)/(800*3)*100, sd = sd(x)/(800*3)*100)))
@@ -68,10 +80,14 @@ summary(glm.TREAT.50)
 
 library(ggplot2)
 # Plot - color by temp, symbol by food 
+jpeg(file="results/survival-time-treat.jpeg", width = 700, height = 500)
 ggplot(survival, aes(x=Date.stocked, y=100*(Live.35.days/800))) + geom_point(size=5, aes(color=TEMP, shape=FOOD)) + labs(title="% Survival by treatment and date larvae was released", y=("Percent Survival"), x=("Date Released")) + ylim(0,60) + scale_color_manual(values=c("royalblue2", "tomato1"))+ scale_shape_manual(values=c(16, 8)) + theme(text = element_text(size = 20))
+dev.off()
 
 #Plot - color by treatment 
+jpeg(file="results/survival-time-treat-col.jpeg", width = 700, height = 500)
 ggplot(survival, aes(x=Date.stocked, y=100*(Live.35.days/800))) + geom_point(size=5, aes(color=TREAT)) + labs(title="% Survival by treatment and date larvae was released", y=("Percent Survival"), x=("Date Released")) + ylim(0,60) + scale_color_manual(values=c("skyblue3", "seagreen3", "indianred2",  "orange1"))+ scale_shape_manual(values=c(16, 8)) + theme(text = element_text(size = 20))
+dev.off()
 
 library(plotly)
 plot_ly(data = survival, x = ~Date.stocked, y = ~100*(Live.50.days/(800*3)), type="scatter", mode="markers", marker=list(size=14), symbol=~FOOD, color=~TEMP, colors = c("royalblue2", "tomato1"), hovertext=~TRT.REP) %>%  #generate plotly plot
@@ -86,10 +102,7 @@ ggplot(subset(survival, TRT == "C"), aes(x=Date.stocked, y=100*(Live.35.days/800
 ggplot(subset(survival, TRT == "D"), aes(x=Date.stocked, y=100*(Live.35.days/800))) + geom_point(size=3, aes(color=TRT.REP)) + labs(title="Treatment D: High Food, High Temp\n% survival by broodstock replicate and date larvae was released", y=("Percent Survival"), x=("Date Released")) + ylim(0,100) 
 
 # Does survival correlate with %live/dead in newly released larvae? 
-head(Collection)
-head(survival)
-head(survival.collect)
 survival.collect <- merge(x=survival, y=Collection[c(5,14,15,16,20)], by.x="Family", by.y="Group", all.x =TRUE, all.y=FALSE)
-plot_ly(data=survival.collect, x=~Perc.live, y=~Live.50.days, type="scatter", mode="text", text=~Family) 
+plot_ly(data=survival.collect, x=~Perc.live, y=~Live.50.days, type="scatter", mode="text", text=~Family)
 # B2-3 only outlier - low percent live at release, and low survival (but not the lowest)
 
