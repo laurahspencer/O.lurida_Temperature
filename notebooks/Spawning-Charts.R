@@ -21,6 +21,7 @@ Collection$TREAT <- as.factor(paste(Collection$TEMP, "-", Collection$FOOD))
 colnames(Collection) <- c("Rep", "Date", "Bag", "Broodstock", "Group", "Vol.sampled", "Vol.total", "Live.A", "Dead.A", "Live.B", "Dead.B", "Live.C", "Dead.C", "Live.Larvae", "Dead.Larvae", "Live.Larvae.norm" ,"TEMP", "FOOD", "TREAT")
 Collection$Perc.live <- (Collection$Live.Larvae/(Collection$Dead.Larvae + Collection$Live.Larvae))*100
 survival
+
 treat_total <- aggregate(cbind(Live.Larvae, Live.Larvae.norm) ~ Date + TREAT + TEMP + FOOD, data = Collection, sum, na.rm = TRUE)
 
 #Calculate cumulative larvae released through time
