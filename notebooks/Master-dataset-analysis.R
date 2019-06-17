@@ -122,7 +122,7 @@ larval.width.release <- merge(x=survival.collect[,c("Sample.number", "Live.Larva
 ggplot(larval.width.release, aes(x=Live.Larvae, y=mm.cv)) +geom_jitter(width=0.2, size=5, aes(color=TREAT)) + theme_bw() + labs(title="CV (%) Larval length within sample ~ Total larvae released", y=("Larval width CV (in sample)"), x="# Larvae collected from spawning tank") + scale_color_manual(values=c('#0571b0','#92c5de','#ca0020','#f4a582'), name=element_blank(), labels = c("Cold / High Food", "Cold / Low Food", "Warm / High Food", "Warm / Low Food")) + theme(text = element_text(size = 12)) 
 
 
-# Broodstock mortality 
+# Broodstock mortality, both trials combined
 brood.mortality.all <- read.csv("data/broodstock-mortality-all-trials.csv", header=T, stringsAsFactors = F, na.strings = "NA")
 brood.mortality.all$Date <- as.Date(brood.mortality.all$Date, format = "%m/%d/%y")
 brood.mortality.all <- melt(data = brood.mortality.all, id.vars = "Date", value.name = "Alive", variable.name = "TREAT.trial")
