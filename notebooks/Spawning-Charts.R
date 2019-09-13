@@ -37,14 +37,143 @@ treat_total.rep <- aggregate(cbind(Live.Larvae, Live.Larvae.norm) ~ Date + TREAT
 treat_total.rep <- merge(x=treat_total.rep, y=aggregate(Broodstock ~ Bag, data=Collection, median), by.x = "Bag", by.y = "Bag")[,-1]
 treat_total.rep$trial <- c("13") 
 
+# Estimate # and % broodstock that reproduced as females 
+treat_total.rep$noFemales <- treat_total.rep$overall_Total/215000 #estimate of # females 
+treat_total.rep$perc.spawn <- 100*(treat_total.rep$noFemales/treat_total.rep$Broodstock) #estimate of # females 
+ggplot(data=treat_total.rep, aes(x=TEMP:FOOD, y=perc.spawn)) + geom_boxplot() + geom_point()
+summary(treat_total.rep$perc.spawn)
+
 # Treatment total (all reps combined), by date 
 treat_total <- aggregate(cbind(Live.Larvae, Live.Larvae.norm) ~ Date + TREAT + TEMP + FOOD, data = Collection, sum, na.rm = TRUE)
+
+# Stats 
+
+# Daily larvae released - did it differ between treatments?
+hist((na.omit(subset(Collection, Live.Larvae>0)$Live.Larvae))^(1/3))
+qqnorm(na.omit(subset(Collection, Live.Larvae>0)$Live.Larvae)^(1/3))
+qqline(na.omit(subset(Collection, Live.Larvae>0)$Live.Larvae)^(1/3))
+shapiro.test(na.omit(subset(Collection, Live.Larvae>0)$Live.Larvae)^(1/3))  #hmmmm 
+leveneTest(na.omit(subset(Collection, Live.Larvae>0)$Live.Larvae)^(1/3), group=subset(Collection, Live.Larvae>0)$TREAT) #variance OK 
+anova(lm(I(Live.Larvae^(1/3)) ~ TEMP*FOOD, data=subset(Collection, Live.Larvae>0))) #no effect
+
+# Total release normalized by broodstock 
+shapiro.test(treat_total.rep$total.percap)
+leveneTest(treat_total.rep$total.percap, group=treat_total.rep$TREAT)
+anova(lm(total.percap ~ TEMP*FOOD, data=treat_total.rep)) #no diff in total released per brood 
+kruskal.test(total.percap ~ TREAT, data=treat_total.rep) #no diff in total released per brood (trying non-parametric)
+
+# Total release not normalized
+shapiro.test(treat_total.rep$overall_Total)
+leveneTest(treat_total.rep$overall_Total, group=treat_total.rep$TREAT)
+summary(aov(overall_Total ~ TEMP*FOOD, data=treat_total.rep)) #no diff in total release
+?aov()
+# First big day 
+shapiro.test(treat_total.rep$first.big) #can't easily convert to normal 
+kruskal.test(first.big ~ TREAT, data = treat_total.rep) #Diff 
+kruskal.test(first.big ~ TEMP, data = treat_total.rep) #no diff temp only 
+kruskal.test(first.big ~ FOOD, data = treat_total.rep) #Diff 
+plot(x=treat_total.rep$TREAT, treat_total.rep$first.big) # earlier release in Low food group plot(x=treat_total.rep$FOOD, treat_total.rep$first.big) # earlier release in Low food group 
+TukeyHSD(aov(first.big ~ TREAT, data = treat_total.rep)) #Diff 
+
+# Max day  
+shapiro.test(treat_total.rep$maxday) #can't easily convert to normal 
+kruskal.test(maxday ~ TREAT, data = treat_total.rep) #no diff all grps
+kruskal.test(maxday ~ TEMP, data = treat_total.rep) #no diff temp
+kruskal.test(maxday ~ FOOD, data = treat_total.rep) #no diff all FOOD
+
+# Estimated % spawn as females   
+shapiro.test(treat_total.rep$perc.spawn) # normal 
+hist(treat_total.rep$perc.spawn) # normal 
+summary(aov(perc.spawn ~ TEMP*FOOD, data = treat_total.rep)) #No diff 
+aggregate(perc.spawn ~ TEMP+FOOD, data=treat_total.rep, mean) #mean percent by treatments  
+mean(treat_total.rep$perc.spawn)
+sd(treat_total.rep$perc.spawn)
+
+Collection.total <- aggregate(cbind(Live.Larvae, Live.Larvae.norm) ~ TREAT + TEMP + FOOD + Rep + Bag, data = Collection, sum, na.rm = TRUE)
+
+plot(Live.Larvae.norm ~ TREAT, data=Collection.total, col=c("skyblue3", "seagreen3",  "indianred2","orange1"), main="Total larvae released per treatment\n13-week exposure\n4 reps, normalized by broodstock", xlab="Treatment", ylab="Cumulative larvae, normalized", cex.lab=1.5, cex.main=1.5, par(mar=c(5,5,4.1,2.1)))
+
+plot(Live.Larvae.norm ~ Rep, data=Collection.total, col=c("skyblue3", "seagreen3",  "indianred2","orange1"), main="Total larvae released per treatment\n(4 reps, normalized by broodstock)", xlab="Treatment", ylab="Cumulative larvae, normalized", cex.lab=1.5, cex.main=1.5, par(mar=c(5,5,4.1,2.1)))
+
+plot(Live.Larvae ~ Bag, data=Collection.total,  main="Total larvae released per treatment across reps", xlab="Treatment", ylab="Cumulative larvae, not normalized", cex.lab=1.5, cex.main=1.5, par(mar=c(5,5,4.1,2.1)))
+
+png(filename = "results/total-larvae-released-points-12wk.png", width=400, height = 300)
+ggplot(Collection.total, aes(x=TREAT, y=Live.Larvae.norm)) + geom_point(size=5, aes(color=TREAT)) + theme_bw() + labs(title="Total larvae released per treatment\n13-week exposure\n4 replicates per treatment", y=("Cumulative release per broodstock")) + scale_color_manual(values=c('#0571b0','#92c5de','#ca0020','#f4a582'), name=element_blank(), labels = c("Cold / High Food", "Cold / Low Food", "Warm / High Food", "Warm / Low Food")) + theme(text = element_text(size = 12)) + theme(axis.title.x=element_blank(), axis.text.x=element_blank(),axis.ticks.x=element_blank()) + scale_y_continuous(lim=c(30000,225000))
+dev.off()
+
+# Summary stats on larval collection 
+mean(Collection$Live.Larvae)
+
+aggregate(Live.Larvae ~ TEMP + FOOD, data = Collection, mean, na.rm = TRUE)
+aggregate(Live.Larvae ~ TEMP + FOOD, data = Collection, median, na.rm = TRUE)
+aggregate(Live.Larvae ~ TEMP + FOOD, data = Collection, max, na.rm = TRUE)
+aggregate(Live.Larvae ~ TEMP + FOOD, data = Collection, sum, na.rm = TRUE)
+aggregate(Broodstock ~ TEMP + FOOD, data = Collection, median, na.rm = TRUE)
+aggregate(Live.Larvae ~ TEMP + FOOD, data = Collection, sd, na.rm = TRUE)
+aggregate(Live.Larvae ~ TEMP + FOOD + Bag, data = Collection, sum, na.rm = TRUE)
+aggregate(Live.Larvae ~ TEMP + FOOD + Bag, data = Collection, sum, na.rm = TRUE)
+
 
 #Calculate cumulative larvae released through time for plots 
 Collection.cumul <- aggregate(cbind(Live.Larvae, Live.Larvae.norm) ~ Date + TREAT + TEMP + FOOD, data = Collection, sum, na.rm = TRUE) %>%
   group_by(TEMP, FOOD, TREAT) %>% 
   mutate(cum.total=cumsum(Live.Larvae),cum.percap = cumsum(Live.Larvae.norm),CalDay = format(Date,"%j")) %>% 
   arrange(Date) %>% dplyr::select(Date,CalDay,TREAT,TEMP,FOOD,Live.Larvae,Live.Larvae.norm, cum.total,cum.percap)
+
+TREATS <- levels(Collection.cumul$TREAT)
+TREATS.col <- c("#0571b0", "#92c5de", "#ca0020", "#f4a582")
+p <- list()
+p[[1]] <- ggplot(data=Collection.cumul, aes(x=Date, y=cum.percap, group=TREAT, color=TREAT)) + 
+    geom_line(size=.75) + scale_color_manual(values=c('#0571b0','#92c5de','#ca0020','#f4a582'), name=element_blank(), labels = c("Cold / High Food", "Cold / Low Food", "Warm / High Food", "Warm / Low Food")) + 
+    theme_classic(base_size = 14) + 
+    #ggtitle("Cumulative larvae released (normalized by no. broodstock)\n13-week exposure") + 
+    scale_x_date(date_breaks = "1 week",date_labels ="%b-%d", 
+                 limits=c(as.Date("2018-03-30"), as.Date("2018-04-27"))) + 
+    theme(legend.position = "none", axis.title.x = element_blank(), axis.title.y = element_blank(), 
+          plot.title = element_text(size = 14, hjust = 0), title = element_blank(), 
+          axis.line = element_line(size = .5, colour = "gray50")) + 
+  scale_y_continuous(limits = c(0, 600000), position = "right") 
+
+for (i in 1:length(TREATS)) {
+  p[[i+1]] <- ggplot(data=subset(Collection.cumul, TREAT==TREATS[i]), aes(x=Date, y=Live.Larvae, fill=TREAT)) + geom_bar(fill=TREATS.col[i], stat="identity",width=.5, position = position_dodge(width=2)) + 
+    theme_classic(base_size = 14) +  
+    theme(plot.title = element_text(size = 14, hjust = 0), axis.title.y = element_blank(), 
+          axis.title.x = element_blank(),  axis.title = element_blank(),
+          axis.text.x = element_blank(), axis.ticks.x = element_blank(), legend.position = "none",
+          axis.line = element_line(size = .5, colour = "gray50")) + 
+    scale_x_date(date_breaks = "1 week",date_labels ="%b-%d", 
+                 limits=c(as.Date("2018-03-30"), as.Date("2018-04-27"))) + 
+    scale_y_continuous(labels = scales::scientific, 
+                       limits = c(0,5780000), breaks=c(2500000, 5000000), position = "right") +
+    geom_smooth(color="gray60", size=0.6, linetype="dashed", span = 0.25, method.args = list(degree=1), se = FALSE)
+}
+pdf(file = "results/13wk-larvae.pdf", width = 5, height = 8)
+plot_grid(p[[1]], p[[2]], p[[3]], p[[4]], p[[5]], align = "v", nrow = 5, rel_heights = c(2/6, 1/6, 1/6, 1/6, 1/6))
+dev.off()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### ========================= old crap 
+
+# Number of substantial larval release days (>10k larvae)
+shapiro.test(treat_total.rep$release.days)  
+leveneTest(treat_total.rep$release.days, group=treat_total.rep$TREAT)
+summary(aov(release.days ~ TEMP*FOOD, data=treat_total.rep)) # Temperature effect 
+TukeyHSD(aov(release.days ~ TEMP*FOOD, data=treat_total.rep)) # Temperature effect
+plot(x=treat_total.rep$TEMP, treat_total.rep$release.days) # more release days in Warm treatment 
+plot(x=treat_total.rep$TREAT, y=treat_total.rep$release.days)
 
 # Larvae released, normalized by # broodstock (all groups)
 p2 <- ggplot(data=Collection.cumul, aes(x=Date, y=Live.Larvae.norm, fill=TREAT)) + 
@@ -99,70 +228,3 @@ p6 <- ggplot(data=subset(Collection.cumul, TREAT=="Warm - Low"), aes(x=Date, y=L
 png(filename = "results/larval-release-chart-Warm-Low-12wk.png", width = 500, height = 400)
 print(Larvae.release.Warm.Low <- p6+ geom_line(data=subset(Collection.cumul, TREAT=="Warm - Low"), aes(x=Date, y=cum.total/5, group=TREAT, color=TREAT),size=.75) + scale_color_manual(values="#f4a582") + scale_y_continuous(limits = c(0, 6e6), sec.axis = sec_axis(~.*6.5,name="Cumulative Larvae Released")))
 dev.off()
-
-# Stats 
-
-# Daily larvae released - did it differ between treatments?
-hist((na.omit(subset(Collection, Live.Larvae>0)$Live.Larvae))^(1/3))
-qqnorm(na.omit(subset(Collection, Live.Larvae>0)$Live.Larvae)^(1/3))
-qqline(na.omit(subset(Collection, Live.Larvae>0)$Live.Larvae)^(1/3))
-shapiro.test(na.omit(subset(Collection, Live.Larvae>0)$Live.Larvae)^(1/3))  #hmmmm 
-leveneTest(na.omit(subset(Collection, Live.Larvae>0)$Live.Larvae)^(1/3), group=subset(Collection, Live.Larvae>0)$TREAT) #variance OK 
-anova(lm(I(Live.Larvae^(1/3)) ~ TEMP*FOOD, data=subset(Collection, Live.Larvae>0))) #no effect
-
-# Total release normalized by broodstock 
-shapiro.test(treat_total.rep$total.percap)
-leveneTest(treat_total.rep$total.percap, group=treat_total.rep$TREAT)
-anova(lm(total.percap ~ TEMP*FOOD, data=treat_total.rep)) #no diff in total released per brood 
-kruskal.test(total.percap ~ TREAT, data=treat_total.rep) #no diff in total released per brood (trying non-parametric)
-
-# Total release not normalized
-shapiro.test(treat_total.rep$overall_Total)
-leveneTest(treat_total.rep$overall_Total, group=treat_total.rep$TREAT)
-summary(aov(overall_Total ~ TEMP*FOOD, data=treat_total.rep)) #no diff in total release
-
-# Number of substantial larval release days (>10k larvae)
-shapiro.test(treat_total.rep$release.days)  
-leveneTest(treat_total.rep$release.days, group=treat_total.rep$TREAT)
-summary(aov(release.days ~ TEMP*FOOD, data=treat_total.rep)) # Temperature effect 
-TukeyHSD(aov(release.days ~ TEMP*FOOD, data=treat_total.rep)) # Temperature effect
-plot(x=treat_total.rep$TEMP, treat_total.rep$release.days) # more release days in Warm treatment 
-plot(x=treat_total.rep$TREAT, y=treat_total.rep$release.days)
-
-# First big day 
-shapiro.test(treat_total.rep$first.big) #can't easily convert to normal 
-kruskal.test(first.big ~ TREAT, data = treat_total.rep) #Diff 
-kruskal.test(first.big ~ TEMP, data = treat_total.rep) #no diff temp only 
-kruskal.test(first.big ~ FOOD, data = treat_total.rep) #Diff 
-plot(x=treat_total.rep$TREAT, treat_total.rep$first.big) # earlier release in Low food group plot(x=treat_total.rep$FOOD, treat_total.rep$first.big) # earlier release in Low food group 
-TukeyHSD(aov(first.big ~ TREAT, data = treat_total.rep)) #Diff 
-
-# Max day  
-shapiro.test(treat_total.rep$maxday) #can't easily convert to normal 
-kruskal.test(maxday ~ TREAT, data = treat_total.rep) #no diff all grps
-kruskal.test(maxday ~ TEMP, data = treat_total.rep) #no diff temp
-kruskal.test(maxday ~ FOOD, data = treat_total.rep) #no diff all FOOD
-
-Collection.total <- aggregate(cbind(Live.Larvae, Live.Larvae.norm) ~ TREAT + TEMP + FOOD + Rep + Bag, data = Collection, sum, na.rm = TRUE)
-
-plot(Live.Larvae.norm ~ TREAT, data=Collection.total, col=c("skyblue3", "seagreen3",  "indianred2","orange1"), main="Total larvae released per treatment\n13-week exposure\n4 reps, normalized by broodstock", xlab="Treatment", ylab="Cumulative larvae, normalized", cex.lab=1.5, cex.main=1.5, par(mar=c(5,5,4.1,2.1)))
-
-plot(Live.Larvae.norm ~ Rep, data=Collection.total, col=c("skyblue3", "seagreen3",  "indianred2","orange1"), main="Total larvae released per treatment\n(4 reps, normalized by broodstock)", xlab="Treatment", ylab="Cumulative larvae, normalized", cex.lab=1.5, cex.main=1.5, par(mar=c(5,5,4.1,2.1)))
-
-plot(Live.Larvae ~ Bag, data=Collection.total,  main="Total larvae released per treatment across reps", xlab="Treatment", ylab="Cumulative larvae, not normalized", cex.lab=1.5, cex.main=1.5, par(mar=c(5,5,4.1,2.1)))
-
-png(filename = "results/total-larvae-released-points-12wk.png", width=400, height = 300)
-ggplot(Collection.total, aes(x=TREAT, y=Live.Larvae.norm)) + geom_point(size=5, aes(color=TREAT)) + theme_bw() + labs(title="Total larvae released per treatment\n13-week exposure\n4 replicates per treatment", y=("Cumulative release per broodstock")) + scale_color_manual(values=c('#0571b0','#92c5de','#ca0020','#f4a582'), name=element_blank(), labels = c("Cold / High Food", "Cold / Low Food", "Warm / High Food", "Warm / Low Food")) + theme(text = element_text(size = 12)) + theme(axis.title.x=element_blank(), axis.text.x=element_blank(),axis.ticks.x=element_blank()) + scale_y_continuous(lim=c(30000,225000))
-dev.off()
-
-# Summary stats on larval collection 
-mean(Collection$Live.Larvae)
-
-aggregate(Live.Larvae ~ TEMP + FOOD, data = Collection, mean, na.rm = TRUE)
-aggregate(Live.Larvae ~ TEMP + FOOD, data = Collection, median, na.rm = TRUE)
-aggregate(Live.Larvae ~ TEMP + FOOD, data = Collection, max, na.rm = TRUE)
-aggregate(Live.Larvae ~ TEMP + FOOD, data = Collection, sum, na.rm = TRUE)
-aggregate(Broodstock ~ TEMP + FOOD, data = Collection, median, na.rm = TRUE)
-aggregate(Live.Larvae ~ TEMP + FOOD, data = Collection, sd, na.rm = TRUE)
-aggregate(Live.Larvae ~ TEMP + FOOD + Bag, data = Collection, sum, na.rm = TRUE)
-aggregate(Live.Larvae ~ TEMP + FOOD + Bag, data = Collection, sum, na.rm = TRUE)

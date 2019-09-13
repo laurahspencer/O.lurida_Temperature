@@ -2,25 +2,30 @@
 
 str(histo) # use "histo" dataframe, imported in the Gonad-histology.R script 
 
-mean(subset(histo, TREAT!="Wild")$Length..cm., na.rm=TRUE)
-sd(subset(histo, TREAT!="Wild")$Length..cm., na.rm=TRUE)
+mean(subset(histo, TREAT!="Wild")$Length..cm., na.rm=TRUE)*10
+sd(subset(histo, TREAT!="Wild")$Length..cm., na.rm=TRUE)*10
 
 size.adult <- histo %>%
   filter(!is.na(TREAT)) %>%
   group_by(TREAT, Week) %>%
   summarize(mean_length = mean(Length..cm., na.rm = TRUE), sd_length = sd(Length..cm., na.rm = TRUE),
             mean_weight = mean(Est..Tissue.Weight..g., na.rm = TRUE), sd_weight = sd(Est..Tissue.Weight..g., na.rm = TRUE))
+size.adult[(nrow(size.adult)+1):(nrow(size.adult)+5),] <- size.adult[1,]
+size.adult[(nrow(size.adult)-4):(nrow(size.adult)),"TREAT"] <- as.factor(c("A", "B", "C", "D", "Wild"))
 
+# subset(size.adult, Week!=0 & TREAT!="Wild")
 # plot mean weight over time 
-png(filename = "results/broodstock-weight.png", width = 400, height = 300)
-ggplot(data=subset(size.adult, Week!=0 & TREAT!="Wild"), aes(x=Week, y=mean_weight, group=TREAT, col=TREAT)) + geom_line() + theme_bw(base_size = 12) +    geom_point(size=3) + ylab("Mean weight (g)") + ggtitle(label = "Mean wet tissue weight in broodstock") + theme(legend.position = "none") +
+pdf("results/broodstock-weight.pdf", width = 7, height = 3.5)
+ggplot(data=subset(size.adult, TREAT!="PRE" & mean_weight<3.5), aes(x=Week, y=mean_weight, group=TREAT, col=TREAT)) + geom_line() + theme_bw(base_size = 12) + geom_point(size=3) + ylab("Mean weight (g)") + ggtitle(label = "Mean wet tissue weight in broodstock") + theme(axis.title.x = element_blank()) +
   scale_color_manual(values=c("#92c5de",
-                        "#ca0020","#0571b0","#f4a582"),
+                        "#ca0020","#0571b0","#f4a582", "gray30"),
                         name="Treatment",
                         breaks=c("C", "A", "B", "D", "Wild"),
-                        labels=c("Cold/High-Food", "Cold/Low-Food", "Warm/High-Food", "Warm/Low-Food", "Wild")) #+geom_errorbar(aes(ymin=mean_weight-sd_weight, ymax=mean_weight+sd_weight), width=.1)
+                        labels=c("7°C+high-food", "7°C+low-food", "10°C+high-food", "10°C+low-food", "Wild")) + scale_x_discrete(labels= c("Nov 30", "Dec 20", "Jan 4", "Jan 23", "Feb 9", "Feb 27", "Mar 3", "Mar 23")) + 
+  geom_vline(xintercept = 4.1, linetype="solid", color = "gray50", size=.5) + 
+  geom_vline(xintercept = 6.1, linetype="dashed", color = "gray50", size=.5)
+#+geom_errorbar(aes(ymin=mean_weight-sd_weight, ymax=mean_weight+sd_weight), width=.1)
 dev.off()
-
 
 # Does weight change over time, diff by treat? 
 anova(lm(Est..Tissue.Weight..g. ~ as.numeric(Week)+factor(TREAT), data=subset(histo, TREAT!="Wild")))
@@ -131,3 +136,8 @@ brood.mortality$TREAT <- as.factor(gsub("2", "", brood.mortality$TREAT))
 png(file="results/broodstock-survival.png", width=700, height=300)
 ggplot(data=brood.mortality, aes(x=Date, y=100*Alive, group=TREAT.rep, col=TREAT)) + theme_bw(base_size = 13) + ggtitle("Broodstock survival over time") + geom_line()+ geom_point() + xlab("Date") + ylab("% Alive") + scale_color_manual(values=c('#0571b0','#92c5de','#ca0020','#f4a582'), name=element_blank(), labels = c("Cold / High Food", "Cold / Low Food", "Warm / High Food", "Warm / Low Food")) + scale_y_continuous(breaks=c(50, 60, 70, 80, 90, 100))
 dev.off()
+
+
+# Figure out how  to do survival analysis with my % survival data. Maybe just do a binomial glm? 
+
+survdiff(data = brood.mortality, formula = Surv(Alive) ~ TREAT)

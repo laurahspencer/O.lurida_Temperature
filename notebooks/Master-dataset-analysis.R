@@ -54,10 +54,10 @@ aggregate(mm ~ Group + TRT + TEMP + FOOD + TREAT, subset(new.length.ann, Length.
 # Merge total fecundity for 6 wk and 13 wk 
 
 # add standardized calendar day columns to each df 
-treat_total.6wks.rep[15:16] <- data.frame(treat_total.6wks.rep[c("maxday", "first.big")], 
+treat_total.6wks.rep[17:18] <- data.frame(treat_total.6wks.rep[c("maxday", "first.big")], 
            lapply(treat_total.6wks.rep[c("maxday", "first.big")], function(x) x - min(treat_total.6wks.rep$first.big)))[3:4]
 
-treat_total.rep[15:16] <- data.frame(treat_total.rep[c("maxday", "first.big")], 
+treat_total.rep[17:18] <- data.frame(treat_total.rep[c("maxday", "first.big")], 
            lapply(treat_total.rep[c("maxday", "first.big")], function(x) x - min(treat_total.rep$first.big)))[3:4]
 
 colnames(treat_total.rep) <- colnames(treat_total.6wks.rep)
@@ -67,6 +67,7 @@ master.release$trial <- as.factor(master.release$trial)
 plot(x=master.release$trial, y=master.release$mean.larvae)
 plot(x=master.release$trial, y=master.release$total.percap)
 plot(x=master.release$trial, y=master.release$maxday.1)
+plot(x=master.release$trial, y=master.release$perc.spawn)
 plot(y=master.release$maxday.1, x=master.release$first.big.1,col=master.release$TREAT)
 plot(x=master.release$release.days, y=master.release$total.percap,col=master.release$TREAT)
 
@@ -76,18 +77,12 @@ summary(aov(total.percap ~ trial, data=master.release))
 summary(aov(total.percap ~ trial*TREAT, data=master.release))
 aggregate(total.percap ~ trial, data=master.release, mean)
 aggregate(total.percap ~ trial, data=master.release, sd)
+164025.23/92243.35
 
-# Total release differ by trial, by treatment & trial? 
+# Total release differ by trial? 
 shapiro.test(master.release$overall_Total^(1/2))
 summary(aov(overall_Total^(1/2) ~ trial, data=master.release))
 summary(aov(overall_Total^(1/2) ~ trial*TREAT, data=master.release))
-
-# Total release differ by trial, by treatment & trial? 
-shapiro.test(master.release$release.days)
-kruskal.test(release.days ~ trial, data=master.release)
-plot(x=master.release$trial, y=master.release$release.days)
-aggregate(release.days ~ trial, data=master.release, mean)
-aggregate(release.days ~ trial, data=master.release, sd)
 
 # Mean daily larvae released differ by trial, treatment & trial?
 shapiro.test(master.release$mean.larvae)
@@ -107,8 +102,16 @@ shapiro.test(master.release$first.big.1)
 kruskal.test(first.big.1 ~ trial, data=master.release)
 plot(x=master.release$trial, y=master.release$first.big.1)
 
-png(filename = "results/total-larvae-released-points-both-trials.png", width=400, height = 300)
-ggplot(master.release, aes(x=TREAT, y=total.percap)) +geom_jitter(width=0.2, size=5, aes(color=TREAT, shape=trial)) + theme_bw() + labs(title="Total larvae released\nper treatment and exposure time", y=("Total released (per broodstock)")) + scale_color_manual(values=c('#0571b0','#92c5de','#ca0020','#f4a582'), name=element_blank(), labels = c("Cold / High Food", "Cold / Low Food", "Warm / High Food", "Warm / Low Food")) + theme(text = element_text(size = 12)) + theme(axis.title.x=element_blank(), axis.text.x=element_blank(),axis.ticks.x=element_blank()) + scale_y_continuous(lim=c(30000,225000)) + scale_shape_manual(values=c(16,8), name="Weeks in treatment") 
+# Perc. spawn as female differ by trial? 
+shapiro.test(master.release$perc.spawn)
+hist(master.release$perc.spawn)
+summary(aov(perc.spawn ~ trial, data=master.release))
+plot(x=master.release$trial, y=master.release$perc.spawn)
+
+master.release$trial <- factor(master.release$trial, levels = rev(levels(master.release$trial)))
+
+pdf("results/total-larvae-released-points-both-trials.pdf", width=5, height = 5)
+ggplot(master.release, aes(x=TREAT, y=total.percap)) +geom_jitter(width=0.2, size=5, aes(color=TREAT, shape=trial)) + theme_bw() + labs(title="Total larvae released\nby treatment and exposure time", y=("Total released (per broodstock)")) + scale_color_manual(values=c('#0571b0','#92c5de','#ca0020','#f4a582'), name=element_blank(), labels = c("7°C+high-food", "7°C+low-food", "10°C+high-food", "10°C+low-food")) + theme(text = element_text(size = 12)) + theme(axis.title.x=element_blank(), axis.text.x=element_blank(),axis.ticks.x=element_blank()) + scale_y_continuous(labels=scales::comma,lim=c(30000,225000)) + scale_shape_manual(values=c(16,8), name="Days in treatment", labels=c("47", "82")) 
 dev.off()
 
 larval.length.release <- merge(x=survival.collect[,c("Sample.number", "Live.Larvae")], y=do.call(data.frame, aggregate(mm ~ Sample + TREAT + TEMP + FOOD, subset(new.length.ann, Length.Width=="length"), FUN = function(x) c(mean = mean(x), sd = sd(x), cv=100*sd(x)/mean(x)))), by.x="Sample.number", by.y="Sample")
@@ -131,9 +134,28 @@ brood.mortality.all$TREAT <- factor(gsub(".6|.13", "", brood.mortality.all$TREAT
 brood.mortality.all$TREAT.trial <- as.factor(gsub("A.|B.|C.|D.", "", brood.mortality.all$TREAT.trial))
 brood.mortality.all$Alive <- as.numeric(brood.mortality.all$Alive)
 
-#png(file="results/broodstock-survival.png", width=700, height=300)
-ggplot(data=subset(brood.mortality.all, TREAT.trial=="13" & Alive!="NA"), aes(x=Date, y=100*Alive, group=TREAT, col=TREAT)) + theme_bw(base_size = 13) + ggtitle("Broodstock survival over time") + geom_line() + geom_point() + xlab("Date") + ylab("% survival") + scale_color_manual(values=c('#0571b0','#92c5de','#ca0020','#f4a582'), name=element_blank(), labels = c("Cold / High Food", "Cold / Low Food", "Warm / High Food", "Warm / Low Food")) + geom_line(data=subset(brood.mortality.all, TREAT.trial=="6" & Alive!="NA"), linetype = 2) + geom_point(data=subset(brood.mortality.all, TREAT.trial=="6" & Alive!="NA"), shape=8, size=2.5) 
-  #+ scale_y_continuous(breaks=c(50, 60, 70, 80, 90, 100)) 
+brood.mort.6 <-  ggplot(data=subset(brood.mortality.all, TREAT.trial=="6" & Alive!="NA"), aes(x=Date, y=100*Alive, group=TREAT, col=TREAT)) + 
+  theme_bw(base_size = 13) + 
+  geom_line() + geom_point(shape=16) + 
+  ggtitle("Broodstock survival over time") + 
+  scale_color_manual(values=c('#0571b0','#92c5de','#ca0020','#f4a582'), name=element_blank()) + 
+  scale_x_date(date_breaks = "3 week",date_labels ="%b %d", limits = c(min(brood.mortality.all$Date), max(brood.mortality.all$Date))) +
+  scale_y_continuous(limits=c(50, 100)) +
+  geom_vline(xintercept = as.numeric(as.Date("2018-01-24")), linetype="solid", color = "gray50", size=.5) + 
+  geom_vline(xintercept = as.numeric(as.Date("2018-02-28")), linetype="dashed", color = "gray50", size=.5) +
+  theme(legend.position = "none", axis.title = element_blank(), axis.text.x = element_blank(), axis.ticks.x = element_blank())
 
-#dev.off()
-str(brood.mortality.all$Alive)
+brood.mort.13 <- ggplot(data=subset(brood.mortality.all, TREAT.trial=="13" & Alive!="NA"), aes(x=Date, y=100*Alive, group=TREAT, col=TREAT)) + 
+  theme_bw(base_size = 13) + 
+  geom_line() + geom_point(shape=8) + xlab("Date") + ylab("% survival") + 
+  scale_color_manual(values=c('#0571b0','#92c5de','#ca0020','#f4a582'), name=element_blank()) + 
+  scale_x_date(date_breaks = "3 week",date_labels ="%b %d", limits = c(min(brood.mortality.all$Date), max(brood.mortality.all$Date))) +
+  scale_y_continuous(limits=c(50, 100)) +
+  geom_vline(xintercept = as.numeric(as.Date("2018-01-24")), linetype="solid", color = "gray50", size=.5) + 
+  geom_vline(xintercept = as.numeric(as.Date("2018-02-28")), linetype="dashed", color = "gray50", size=.5) +
+  theme(legend.position = "none", axis.title.y = element_blank(), axis.title.x = element_blank())
+
+pdf(file = "results/broodstock-survival.pdf", width = 6, height = 5)
+grid.arrange(brood.mort.6, brood.mort.13)
+dev.off()
+

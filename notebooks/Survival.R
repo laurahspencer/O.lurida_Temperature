@@ -29,7 +29,7 @@ plot(Live.50.days/(3*800) ~ Date.stocked, data=survival, col=TREAT, pch=8)
 jpeg(file="results/boxplot-survival.jpeg", width = 900, height = 600)
 plot(Live.50.days/(3*800) ~ TREAT, data=survival, col=c("skyblue3", "seagreen3", "indianred2",  "orange1"), main="Mean % survival across 12 groups per treatment", xlab="Treatment", ylab="Mean % survival", cex.lab=1.5, cex.main=1.5, par(mar=c(5,5,4.1,2.1)))
 dev.off()
-
+View(survival)
 max(survival$Date.stocked)-min(survival$Date.stocked)
 
 #levels(survival$TREAT) #color order ="skyblue3", "seagreen3", "indianred2",  "orange1"
