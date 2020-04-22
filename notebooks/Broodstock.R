@@ -22,7 +22,7 @@ ggplot(data=subset(size.adult, TREAT!="PRE" & mean_weight<3.5), aes(x=Week, y=me
                         name="Treatment",
                         breaks=c("C", "A", "B", "D", "Wild"),
                         labels=c("7°C+high-food", "7°C+low-food", "10°C+high-food", "10°C+low-food", "Wild")) + scale_x_discrete(labels= c("Nov 30", "Dec 20", "Jan 4", "Jan 23", "Feb 9", "Feb 27", "Mar 3", "Mar 23")) + 
-  geom_vline(xintercept = 4.1, linetype="solid", color = "gray50", size=.5) + 
+  geom_vline(xintercept = 4.1, linetype="dashed", color = "gray50", size=.5) + 
   geom_vline(xintercept = 6.1, linetype="dashed", color = "gray50", size=.5)
 #+geom_errorbar(aes(ymin=mean_weight-sd_weight, ymax=mean_weight+sd_weight), width=.1)
 dev.off()

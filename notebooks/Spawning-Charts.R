@@ -1,4 +1,3 @@
-
 Collection <- read.csv("data/Larvae-collection.csv", header=T, stringsAsFactors = F)
 Collection <- Collection[c(1,2,3,4,5,6,7,8,9,10,11,12,13,22)]
 Collection$Date.collected <- as.Date(Collection$Date.collected, format = "%m/%d/%y")
@@ -16,13 +15,14 @@ Collection$Live.Larvae <- (rowMeans(subset(Collection, select = c("Count.A.LIVE"
 Collection$Dead.Larvae <- (rowMeans(subset(Collection, select = c("Count.A.DEAD","Count.C.DEAD","Count.C.DEAD")), na.rm = TRUE))/Collection$Vol..for.count..mL.*Collection$Total.Vol..mL.
 Collection$Live.Larvae.norm <- Collection$Live.Larvae/Collection$Broodstock
 Collection <- merge(x=Collection, y=unique(survival[,c("TRT.REP", "TEMP", "FOOD")]), by.x = "Treatment", by.y = "TRT.REP", all.x=T, all.y=T)
-View(Collection)
 
 Collection$TREAT <- as.factor(paste(Collection$TEMP, "-", Collection$FOOD))
 colnames(Collection) <- c("Rep", "Date", "Bag", "Broodstock", "Group", "Vol.sampled", "Vol.total", "Live.A", "Dead.A", "Live.B", "Dead.B", "Live.C", "Dead.C", "Sample.number", "Live.Larvae", "Dead.Larvae", "Live.Larvae.norm" ,"TEMP", "FOOD", "TREAT")
 
 Collection$Perc.live <- (Collection$Live.Larvae/(Collection$Dead.Larvae + Collection$Live.Larvae))*100
 survival
+
+saveRDS(Collection, file = "data/larvae-collection-data.rds") #save for later use 
 
 nrow(subset(Collection, Live.Larvae>10000 & TREAT=="Cold - Low")) == (13+9+7+8)
 nrow(subset(Collection, Live.Larvae>10000 & TREAT=="Cold - High")) == (8+4+7+9)
@@ -67,13 +67,13 @@ shapiro.test(treat_total.rep$overall_Total)
 leveneTest(treat_total.rep$overall_Total, group=treat_total.rep$TREAT)
 summary(aov(overall_Total ~ TEMP*FOOD, data=treat_total.rep)) #no diff in total release
 ?aov()
+
 # First big day 
 shapiro.test(treat_total.rep$first.big) #can't easily convert to normal 
 kruskal.test(first.big ~ TREAT, data = treat_total.rep) #Diff 
 kruskal.test(first.big ~ TEMP, data = treat_total.rep) #no diff temp only 
 kruskal.test(first.big ~ FOOD, data = treat_total.rep) #Diff 
 plot(x=treat_total.rep$TREAT, treat_total.rep$first.big) # earlier release in Low food group plot(x=treat_total.rep$FOOD, treat_total.rep$first.big) # earlier release in Low food group 
-TukeyHSD(aov(first.big ~ TREAT, data = treat_total.rep)) #Diff 
 
 # Max day  
 shapiro.test(treat_total.rep$maxday) #can't easily convert to normal 

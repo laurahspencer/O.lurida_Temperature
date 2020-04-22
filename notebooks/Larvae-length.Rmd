@@ -1,0 +1,375 @@
+---
+title: "larval-size"
+author: "Laura H Spencer"
+date: "10/10/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+require(tidyverse)
+require(readxl)
+require(here)
+require(purrr)
+require(plotly)
+
+```
+
+Read in size data, join with sample info 
+
+```{r}
+# Data collected using Jackie's scope, but done so in numerical order, which was not random. 
+larvalsize.path.old <- here::here("data", "new-larvae-size", "20191111_2018-new-larvae.xlsx")
+larvalsize.old <- larvalsize.path.old %>%
+  excel_sheets() %>%
+  set_names() %>%
+  purrr::map_df(~ read_excel(path = larvalsize.path.old, sheet = .x), .id = "sheet") %>%
+  dplyr::mutate(Sample.number = as.numeric(sheet)) %>% 
+  inner_join(
+    readRDS(file=here::here("data/larvae-collection-data.rds")) %>% 
+      as_tibble() %>%
+      dplyr::select(Rep, Date, Bag, Group, Sample.number, Live.Larvae, TEMP, FOOD, TREAT) %>%
+      dplyr::mutate(Sample.number = as.numeric(Sample.number)))
+
+# Data re-collected using Jackie's scope, in random order. 
+larvalsize.path <- here::here("data", "new-larvae-size", "20200110_2018-new-larvae.xlsx")
+larvalsize <- larvalsize.path %>%
+  excel_sheets() %>%
+  set_names() %>%
+  purrr::map_df(~ read_excel(path = larvalsize.path, sheet = .x), .id = "sheet") %>%
+  dplyr::mutate(Sample.number = as.numeric(sheet)) %>% 
+  inner_join(
+    readRDS(file=here::here("data/larvae-collection-data.rds")) %>% 
+      as_tibble() %>%
+      dplyr::select(Rep, Date, Bag, Group, Sample.number, Live.Larvae, TEMP, FOOD, TREAT) %>%
+      dplyr::mutate(Sample.number = as.numeric(Sample.number)))
+```
+
+How many larvae were measured per sample? 
+
+```{r}
+ngroups <- larvalsize %>% group_by(sheet) %>% tally() %>% View()
+```
+
+
+Create a dataframe with average shell measurements by sample number (aka larval batch)
+
+```{r}
+average.all <- larvalsize %>% 
+  dplyr::select(sheet, MaxFeret, MinFeret, Length, Width, Circularity, Sample.number, Date, TEMP, FOOD, Group, Live.Larvae) %>%
+  group_by(sheet) %>%
+  mutate_at(c("MaxFeret", "MinFeret", "Circularity", "Length", "Width", "Live.Larvae"), mean, na.rm=TRUE) %>%
+  distinct()
+```
+
+# Plots
+
+## Length & Width by release date 
+
+```{r}
+ggplotly(average.all %>% 
+ggplot(aes(x=sheet, y=Length, col=TEMP:FOOD)) + theme(legend.position="bottom", 
+       axis.text.x = element_text(angle = 90, hjust = 1, size = 6)) + 
+  ggtitle("Length, proxy for shell width") + geom_point())
+
+ggplotly(average.all %>% 
+ggplot(aes(x=sheet, y=Width, col=TEMP:FOOD)) + theme(legend.position="bottom", 
+       axis.text.x = element_text(angle = 90, hjust = 1, size = 6)) + 
+  ggtitle("Width, proxy for shell height") + geom_point())
+```
+
+## Shell size by circulatiry (which may influence how accurate measurements were)
+
+```{r}
+ggplotly(average.all %>%
+ggplot(aes(x=Circularity, y=Length, col=TEMP:FOOD)) + 
+  geom_point() + ggtitle("Length, proxy for shell width") +
+  geom_smooth(method = "lm", alpha = .15, aes(fill = TEMP:FOOD)))
+
+ggplotly(average.all %>%
+ggplot(aes(x=Circularity, y=Width, col=TEMP:FOOD)) + 
+  geom_point() + ggtitle("Width, proxy for shell height") +
+  geom_smooth(method = "lm", alpha = .15, aes(fill = TEMP:FOOD)))
+```
+
+## Shell size by date released 
+
+```{r}
+ggplotly(average.all %>%
+ggplot(aes(x=Date, y=Length, col=TEMP:FOOD)) + 
+  geom_point() + 
+  geom_smooth(method = "lm", alpha = .15, aes(fill = TEMP:FOOD)))
+
+ggplotly(average.all %>%
+ggplot(aes(x=Date, y=Width, col=TEMP:FOOD)) + 
+  geom_point() + 
+  geom_smooth(method = "lm", alpha = .15, aes(fill = TEMP:FOOD)))
+```
+
+## Circularity by release date
+
+### NOTE: it is clear that samples #1-50 were preserved well, but samples >#50 were considerably degraded (ethanol was not used to kill the larvae)
+
+```{r}
+ggplotly(average.all %>%
+ggplot(aes(x=sheet, y=Circularity, col=TEMP:FOOD)) + 
+  geom_point())
+```
+
+## Shell length by # larvae collected that day 
+
+```{r}
+ggplotly(average.all %>%
+ggplot(aes(x=Live.Larvae, y=Length, col=TEMP:FOOD)) + 
+  geom_point())
+```
+
+
+```{r}
+### plot old vs. new measurements - different? 
+
+old.new <- merge(
+  x=larvalsize.old %>% 
+  dplyr::select(sheet, Length, Width, Circularity, Sample.number, Date, TEMP, FOOD, Group) %>%
+  group_by(sheet) %>%
+  mutate_at(c("Length", "Width", "Circularity"), mean, na.rm=TRUE) %>%
+  distinct(),
+  y=larvalsize %>% 
+  dplyr::select(sheet, Length, Width, Circularity, Sample.number, Date, TEMP, FOOD, Group) %>%
+  group_by(sheet) %>%
+  mutate_at(c("Length", "Width", "Circularity"), mean, na.rm=TRUE) %>%
+  distinct(),
+  by="sheet") 
+
+summary(lm(Length.y ~ Length.x, data=old.new))
+
+ggplotly(ggplot(data=old.new, aes(x=Length.x, y=Length.y, col=TEMP.x:FOOD.x)) + 
+  geom_point() + geom_smooth(method = "lm"))
+
+ggplotly(ggplot(data=old.new, aes(x=Length.x, y=Length.y)) + 
+  geom_point() + geom_smooth(method = "lm"))
+
+```
+
+### Boxplots analysis of size metrics by treatment, all larvae measured 
+
+###  MaxFeret
+
+```{r}
+average.all %>%
+  group_by(TEMP, FOOD) %>%
+  summarise(count = n_distinct(sheet))
+
+average.all %>%
+ggplot(aes(x=TEMP:FOOD, y=MaxFeret)) + 
+  geom_boxplot(aes(col=TEMP:FOOD)) + 
+    ggtitle("MaxFeret by treatment") + 
+  geom_jitter(width=0.2, aes(col=TEMP:FOOD)) 
+
+hist(average.all$MaxFeret)
+shapiro.test(average.all$MaxFeret)
+bartlett.test(average.all$MaxFeret ~ average.all$TEMP)
+bartlett.test(average.all$MaxFeret ~ average.all$FOOD)
+summary(aov(MaxFeret ~ TEMP*FOOD, data=average.all))
+```
+
+### MinFeret 
+
+```{r}
+average.all %>%
+ggplot(aes(x=TEMP:FOOD, y=MinFeret)) + 
+  geom_boxplot(aes(col=TEMP:FOOD)) + 
+  ggtitle("MinFeret by treatment") + 
+  geom_jitter(width=0.2, aes(col=TEMP:FOOD)) 
+
+hist(average.all$MinFeret)
+shapiro.test(average.all$MinFeret)
+bartlett.test(average.all$MinFeret ~ average.all$TEMP)
+bartlett.test(average.all$MinFeret ~ average.all$FOOD)
+summary(aov(MinFeret ~ TEMP*FOOD, data=average.all))
+summary(aov(MinFeret ~ FOOD:TEMP, data=average.all))
+TukeyHSD(aov(MinFeret ~ FOOD:TEMP, data=average.all))
+summary(aov(MinFeret ~ Circularity*FOOD*TEMP, data=average.all))
+summary(aov(MinFeret ~ Date*FOOD*TEMP, data=average.all))
+
+```
+
+### Length
+
+```{r}
+average.all %>%
+ggplot(aes(x=TEMP:FOOD, y=Length)) + 
+  geom_boxplot(aes(col=TEMP:FOOD)) + 
+  ggtitle("Length by treatment") + 
+  geom_jitter(width=0.2, aes(col=TEMP:FOOD)) 
+
+hist(average.all$Length)
+shapiro.test(average.all$Length)
+bartlett.test(average.all$Length ~ average.all$TEMP)
+bartlett.test(average.all$Length ~ average.all$FOOD)
+summary(aov(Length ~ TEMP*FOOD, data=average.all)) 
+plot(lm(Length ~ TEMP*FOOD, data=average.all))
+
+mean(average.all$Length)
+mean(average.all$Width)
+```
+
+### Width
+
+```{r}
+average.all %>%
+ggplot(aes(x=TEMP:FOOD, y=Width)) + 
+  geom_boxplot(aes(col=TEMP:FOOD)) + 
+  ggtitle("Width by treatment") + 
+  geom_jitter(width=0.2, aes(col=TEMP:FOOD)) 
+
+hist(average.all$Width)
+shapiro.test(average.all$Width)
+bartlett.test(average.all$Width ~ average.all$TEMP)
+bartlett.test(average.all$Width ~ average.all$FOOD)
+summary(aov(Width ~ TEMP*FOOD, data=average.all))
+summary(aov(Width ~ Circularity*FOOD*TEMP, data=average.all))
+plot(lm(Width ~ TEMP*FOOD, data=average.all))
+```
+
+# Assess larval size differences among only larval groups that I reared, by broodstock treatment
+
+```{r}
+average.reared <- larvalsize %>% 
+  dplyr::select(sheet, MaxFeret, MinFeret, Circularity, Length, Width, Sample.number, Date, TEMP, FOOD, Group) %>%
+  filter(!is.na(Group)) %>%
+  group_by(sheet) %>%
+  mutate_at(c("MaxFeret", "MinFeret", "Circularity", "Length", "Width"), mean, na.rm=TRUE) %>%
+  distinct()
+```
+
+## MaxFeret 
+```{r}
+average.reared %>%
+ggplot(aes(x=TEMP:FOOD, y=MaxFeret)) + 
+  geom_boxplot(aes(col=TEMP:FOOD)) + 
+  geom_jitter(width=0.2, aes(col=TEMP:FOOD)) 
+
+hist(average.reared$Width)
+shapiro.test(average.reared$MaxFeret)
+bartlett.test(average.reared$MaxFeret ~ average.reared$TEMP)
+bartlett.test(average.reared$MaxFeret ~ average.reared$FOOD)
+summary(aov(MaxFeret ~ TEMP*FOOD, data=average.reared)) #Food sign. 
+TukeyHSD(aov(MaxFeret ~ TEMP*FOOD, data=average.reared)) #Larger larvae from high food broodstock 
+summary(aov(MaxFeret ~ Circularity*FOOD*TEMP, data=average.reared))
+#plot(lm(MaxFeret ~ TEMP*FOOD, data=average.reared))
+```
+
+## MinFeret 
+
+```{r}
+average.reared %>%
+ggplot(aes(x=TEMP:FOOD, y=MinFeret)) + 
+  geom_boxplot(aes(col=TEMP:FOOD)) + 
+  geom_jitter(width=0.2, aes(col=TEMP:FOOD))
+
+hist(average.reared$MinFeret)
+shapiro.test(average.reared$MinFeret)
+bartlett.test(average.reared$MinFeret ~ average.reared$TEMP)
+bartlett.test(average.reared$MinFeret ~ average.reared$FOOD)
+summary(aov(MinFeret ~ TEMP*FOOD, data=average.reared)) #food sign. 
+TukeyHSD(aov(MinFeret ~ TEMP*FOOD, data=average.reared)) # Larger larve from high food 
+summary(aov(MinFeret ~ Circularity*FOOD*TEMP, data=average.reared))
+#plot(lm(MinFeret ~ TEMP*FOOD, data=average.reared))
+```
+
+## Length (aka shell width)
+
+```{r}
+average.reared %>%
+ggplot(aes(x=TEMP:FOOD, y=Length)) + 
+  geom_boxplot(aes(col=TEMP:FOOD)) + 
+  geom_jitter(width=0.2, aes(col=TEMP:FOOD)) 
+
+hist(average.reared$Length)
+shapiro.test(average.reared$Length)
+bartlett.test(average.reared$Length ~ average.reared$TEMP)
+bartlett.test(average.reared$Length ~ average.reared$FOOD)
+summary(aov(Length ~ TEMP*FOOD, data=average.reared)) #Food sign. 
+TukeyHSD(aov(Length ~ TEMP*FOOD, data=average.reared)) #Larger larvae from high food 
+summary(aov(Length ~ Circularity*FOOD*TEMP, data=average.reared))
+#plot(lm(Length ~ TEMP*FOOD, data=average.reared))
+```
+
+## Width (aka shell height)
+
+```{r}
+average.reared %>%
+ggplot(aes(x=TEMP:FOOD, y=Width)) + 
+  geom_boxplot(aes(col=TEMP:FOOD)) + 
+  geom_jitter(width=0.2, aes(col=TEMP:FOOD)) 
+
+hist(average.reared$Width)
+shapiro.test(average.reared$Width)
+bartlett.test(average.reared$Width ~ average.reared$TEMP)
+bartlett.test(average.reared$Width ~ average.reared$FOOD)
+summary(aov(Width ~ TEMP*FOOD, data=average.reared)) #Food sign. 
+TukeyHSD(aov(Width ~ TEMP*FOOD, data=average.reared)) #Lager larvae from high food 
+summary(aov(Width ~ Circularity*FOOD*TEMP, data=average.reared))
+#plot(lm(Width ~ TEMP*FOOD, data=average.reared))
+```
+
+## Figures 
+
+### Shell width (longest axis, but referred to as "length" in data), all measured larvae 
+
+```{r}
+pdf(file=here::here("results","larval-shell-length-remeasure.pdf"), width = 6, height = 6)
+average.all %>%
+ggplot(aes(x=TEMP:FOOD, y=Length)) + 
+geom_boxplot(lwd=0.5, aes(col=TEMP:FOOD)) + 
+  theme_bw(base_size = 13) + 
+  labs(title="Larval shell width upon release", y=("shell width (µm)"), x="treatment") + scale_color_manual(
+    values=c('#0571b0','#92c5de','#ca0020','#f4a582'), name=element_blank(), 
+    labels = c("Cold / High Food", "Cold / Low Food", "Warm / High Food", "Warm / Low Food")) + 
+  theme(text = element_text(size = 12)) + 
+  theme(axis.title.x=element_blank(), 
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank()) + 
+  geom_jitter(width=0.2, aes(col=TEMP:FOOD))
+dev.off()
+
+summary(aov(Length ~ TEMP*FOOD, data=average.all)) 
+TukeyHSD(aov(Length ~ TEMP*FOOD, data=average.all)) 
+
+aggregate(Length ~ TEMP*FOOD, data=average.all, mean)
+aggregate(Length ~ TEMP*FOOD, data=average.all, sd)
+aggregate(Width ~ TEMP*FOOD, data=average.all, mean)
+aggregate(Width ~ TEMP*FOOD, data=average.all, sd)
+
+aggregate(Length ~ TEMP*FOOD, data=average.all, min)
+aggregate(Length ~ TEMP*FOOD, data=average.all, max)
+aggregate(Width ~ TEMP*FOOD, data=average.all, min)
+aggregate(Width ~ TEMP*FOOD, data=average.all, max)
+
+mean(average.all$Length)
+mean(average.all$Width)
+```
+
+### Shell length, reared larvae 
+
+```{r}
+pdf(file=here::here("results","larval-shell-length-reared-remeasure.pdf"))
+average.reared %>%
+ggplot(aes(x=TEMP:FOOD, y=Length)) + 
+geom_boxplot(lwd=0.5, aes(col=TEMP:FOOD)) + 
+  theme_bw(base_size = 11) + 
+  labs(title="Larval shell Length\nby parental treatment", y=("shell length (µm)"), x="treatment") + scale_color_manual(
+    values=c('#0571b0','#92c5de','#ca0020','#f4a582'), name=element_blank(), 
+    labels = c("Cold / High Food", "Cold / Low Food", "Warm / High Food", "Warm / Low Food")) + 
+  theme(text = element_text(size = 12)) + 
+  theme(axis.title.x=element_blank(), 
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank()) + 
+  geom_jitter(width=0.2, aes(col=TEMP:FOOD))
+dev.off()
+
+summary(aov(Length ~ TEMP*FOOD, data=average.reared)) 
+TukeyHSD(aov(Length ~ TEMP*FOOD, data=average.reared)) 
+```
+

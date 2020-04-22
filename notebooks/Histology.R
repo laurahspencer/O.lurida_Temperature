@@ -309,16 +309,18 @@ fisher.test(femalstage.wk10[-1,], simulate.p.value = T, B = 10000)  #no sign. di
 # Week 13 (end of treatment)
 
 print(sex.wk13 <- table(subset(histo, Week=="13")$TREAT, subset(histo, Week=="13")$SEX))
-fisher.test(sex.wk13[2:5,], simulate.p.value = T, B = 10000)  #no sign. diff
+chisq.test(sex.wk13[-1,], simulate.p.value = T, B = 10000)  #can't use chi-sq
+fisher.test(sex.wk13[-1,], simulate.p.value = T, B = 10000)  #no sign. diff
 
 # Collapsed sex designations (HPF = F, etc.)
 print(sex.wk13.col <- table(subset(histo, Week=="13")$TREAT, subset(histo, Week=="13")$SEX.COL))
-chisq.test(sex.wk13.col[2:5,-1], simulate.p.value = T, B = 10000)  #no sign. diff
+chisq.test(sex.wk13.col[-1,-1], simulate.p.value = T, B = 10000)  #no sign. diff
 
 # Male gonad stage 
 print(malstage.wk13 <- table(subset(histo, Week=="13")$TREAT, subset(histo, Week=="13")$MALSTAGE.COL))
-chisq.test(malstage.wk13[2:5,], simulate.p.value = T, B = 10000)  # diff! 
-pairwiseNominalIndependence(malstage.wk13[2:5,],fisher = TRUE,gtest  = FALSE, chisq  = FALSE, digits = 3)
+chisq.test(malstage.wk13[-1,], simulate.p.value = T, B = 10000)  # diff! 
+require(rcompanion)
+pairwiseNominalIndependence(malstage.wk13[2:6,],fisher = TRUE,gtest  = FALSE, chisq  = FALSE, digits = 3)
 
 
 # Female gonad stage 
@@ -326,11 +328,10 @@ print(femalstage.wk13 <- table(subset(histo, Week=="13")$TREAT, subset(histo, We
 chisq.test(femalstage.wk13[-1,], simulate.p.value = T, B = 10000)  #no sign. diff
 
 
-# Week 15 (last sampling, 3rd week of reproductive conditioning
+# Week 15 (first reproductive conditioning sampling)
 
 print(sex.wk15 <- table(subset(histo, Week=="15")$TREAT, subset(histo, Week=="15")$SEX))
-fisher.test(sex.wk15[2:5,], simulate.p.value = T, B = 10000)  #no 
-chisq.test(sex.wk15[2:5,], simulate.p.value = T, B = 10000)  #no sign. diff
+chisq.test(sex.wk15[2:5,], simulate.p.value = T, B = 10000)  #cant use
 
 # Collapsed sex designations (HPF = F, etc.)
 print(sex.wk15.col <- table(subset(histo, Week=="15")$TREAT, subset(histo, Week=="15")$SEX.COL))
@@ -376,7 +377,9 @@ chisq.test(sex.wkcond.col[2:5,-1], simulate.p.value = T, B = 10000)  #no sign. d
 
 # Male gonad stage 
 print(malstage.wkcond <- table(subset(histo, Week=="15" | Week=="16")$TREAT, subset(histo, Week=="15" | Week=="16")$MALSTAGE.COL))
-chisq.test(malstage.wkcond[2:5,], simulate.p.value = T, B = 10000)  #Yes diff. 
+chisq.test(malstage.wkcond[2:5,], simulate.p.value = T, B = 10000)  #Yes diff
+pairwiseNominalIndependence(malstage.wkcond[2:5,],fisher = TRUE,gtest  = FALSE, chisq  = FALSE, digits = 3)
+
 
 # Female gonad stage 
 print(femalstage.wkcond <- table(subset(histo, Week=="15" | Week=="16")$TREAT, subset(histo, Week=="15" | Week=="16")$FEMSTAGE.COL))
@@ -439,17 +442,16 @@ oocyte.meanlength.test <- aggregate(Length ~ Sample+TEMP+FOOD+Week+TREAT+TREAT.N
 
 # Compare oocyte length by treatment, using mean size per individual 
 summary(aov(Length ~ TEMP*FOOD, data=subset(oocyte.meanlength.test, TEMP!="Wild")))
-summary(aov(Length ~ TEMP, data=subset(oocyte.meanlength.test, TEMP!="Wild"))) #yes no diff. 
-
+View(oocyte.meanlength.test)
 #Plot mean oocyte length for each oyster sample, by treatment 
 pdf(file="results/Stage3-oocyte-size.pdf", width=5, height=6)
 ggplot(data=subset(oocyte.meanlength, TREAT!="Wild"), aes(x=as.factor(Week), y=Length, fill=TEMP)) + geom_boxplot() + theme_bw(base_size = 13) + ggtitle(label = "Stage 3 oocyte size\nweeks 13-16") + ylab("Maximum oocyte length (um)") + scale_fill_manual(values=c("slategray", "slategray1", "lightcoral",  "rosybrown1"), name=element_blank(), labels = c("Cold / High Food", "Cold / Low Food", "Warm / High Food", "Warm / Low Food")) + theme(axis.title.x=element_blank(), axis.text.x=element_blank(),axis.ticks.x=element_blank()) 
 dev.off()
 
-png(file="results/Stage3-oocyte-size.png", width=350, height=400)
-ggplot(data=subset(oocyte.meanlength, TREAT!="Wild"), aes(x=TREAT.NAME, y=Length, col=TREAT.NAME)) + geom_boxplot(lwd=0.5) + theme_bw(base_size = 11) + ggtitle(label = "Stage 3 oocyte size before spawn") + ylab("Maximum oocyte length (um)") + scale_color_manual(values=c('#0571b0','#92c5de','#ca0020','#f4a582'), name=element_blank(), labels = c("7°C+high-food", "7°C+low-food", "10°C+high-food", "10°C+low-food")) + theme(axis.title.x=element_blank(), axis.text.x=element_blank(),axis.ticks.x=element_blank()) + geom_jitter(width = .2,aes(shape=as.factor(Week)),size=3.5) + scale_shape_manual(values=c(1,2,8), name="Week Sampled")
+pdf(file="results/Stage3-oocyte-size.pdf", width=5.5, height=6)
+ggplot(data=subset(oocyte.meanlength, TREAT!="Wild"), aes(x=TREAT.NAME, y=Length, col=TREAT.NAME)) + geom_boxplot(lwd=0.5) + theme_bw(base_size = 11) + ggtitle(label = "Ripe oocyte size") + ylab("Maximum oocyte length (um)") + scale_color_manual(values=c('#0571b0','#92c5de','#ca0020','#f4a582'), name=element_blank(), labels = c("7°C+high-food", "7°C+low-food", "10°C+high-food", "10°C+low-food")) + theme(axis.title.x=element_blank(), axis.text.x=element_blank(),axis.ticks.x=element_blank()) + geom_jitter(width = .2,aes(shape=as.factor(Week)),size=2) + scale_shape_manual(values=c(15,16,17), name="Date Oocyte Sampled", labels=c("February 27", "March 13", "March 23"))
 dev.off()
-
+#c(1,2,0)
 
 # with wild too (but only 1 wild sample)
 ggplot(data=oocyte, aes(x=TREAT.NAME, y=Length, fill=TREAT.NAME)) +
@@ -494,7 +496,7 @@ for (i in 1:length(treats)) {
 }
 p <- list()
 for (i in 1:length(treats)){
-  p[[i]] <- ggplot(data=subset(sexcol.treats[[i]], Var2=="F" | Var2=="M" | Var2=="H"), aes(x=Var1, y=100*Freq, group=Var2, col=Var2)) + geom_line() + theme_bw(base_size = 12) + geom_point(size=2.5) + scale_color_manual(values=c("gray10", "gray45", "gray75")) + theme(legend.position = "none", axis.title.x=element_blank(), axis.title.y=element_blank(), plot.title = element_blank(), axis.text.x = element_blank(), axis.ticks.x = element_blank()) + ylim(c(0,100)) + geom_vline(xintercept = 4.1, linetype="solid", color = "gray50", size=.5) + geom_vline(xintercept = 6.1, linetype="dashed", color = "gray50", size=.5)
+  p[[i]] <- ggplot(data=subset(sexcol.treats[[i]], Var2=="F" | Var2=="M" | Var2=="H"), aes(x=Var1, y=100*Freq, group=Var2, col=Var2)) + geom_line() + theme_bw(base_size = 12) + geom_point(size=2.5) + scale_color_manual(values=c("gray10", "gray45", "gray75")) + theme(legend.position = "none", axis.title.x=element_blank(), axis.title.y=element_blank(), plot.title = element_blank(), axis.text.y=element_blank(),axis.ticks.y=element_blank(), axis.text.x = element_blank(), axis.ticks.x = element_blank()) + ylim(c(0,100)) + geom_vline(xintercept = 4.1, linetype="dashed", color = "gray50", size=.5) + geom_vline(xintercept = 6.1, linetype="solid", color = "gray50", size=.5)
 }
 pdf(file = "results/sex-line-plots.pdf", width = 4.5, height = 8)
 do.call(grid.arrange, c(c(p[1], p[4], p[2], p[5], p[3]), list(ncol=1, nrow=5)))
@@ -504,7 +506,7 @@ pdf(file = "results/sex-line-plots-legend.pdf", width = 4.5, height = 2)
 ggplot(data=subset(sexcol.treats[[i]], Var2=="F" | Var2=="M" | Var2=="H"), aes(x=Var1, y=100*Freq, group=Var2, col=Var2)) + geom_line() + theme_bw(base_size = 12) + geom_point(size=2.5) + scale_color_manual(values=c("gray10", "gray45", "gray75"), name=element_blank(), labels = c("Female / HPF", "Male / HPM", "Hermaph.")) + 
   theme(axis.title.x=element_blank(), axis.title.y=element_blank(), legend.position = "bottom", 
         legend.title=element_text(size=13), legend.text = element_text(size=13)) + 
-  guides(color = guide_legend(override.aes = list(size=6))) + scale_x_discrete(labels= c("Nov 30", "Dec 20", "Jan 4", "Jan 23", "Feb 9", "Feb 27", "Mar 3", "Mar 23"))
+  guides(color = guide_legend(override.aes = list(size=6))) + scale_x_discrete(labels= c("Nov 30", "Dec 20", "Jan 4", "Jan 23", "Feb 9", "Feb 27", "Mar 13", "Mar 23"))
 dev.off()
 
 # Plot male stage over time 
@@ -525,16 +527,21 @@ for (i in 1:length(treats)) {
 
 p <- list()
 for (i in 1:length(treats)){
-  p[[i]] <- ggplot(data=subset(malestage.treats[[i]], Var2!="0"), aes(x=Var1, y=100*Freq, group=Var2, col=Var2)) + geom_line() + theme_bw(base_size = 12) + geom_point(size=2.5) + ylim(c(0,100)) + geom_vline(xintercept = 4.1, linetype="solid", color = "gray50", size=.5) + geom_vline(xintercept = 6.1, linetype="dashed", color = "gray50", size=.5) + theme(axis.title.x=element_blank(), axis.title.y=element_blank(), legend.position = "none", plot.title = element_blank(), axis.text.y=element_blank(),axis.ticks.y=element_blank(),axis.text.x=element_blank(),axis.ticks.x=element_blank()) + scale_color_manual(values=c("gray45", "gray10", "gray75"))
+  p[[i]] <- ggplot(data=subset(malestage.treats[[i]], Var2!="0"), aes(x=Var1, y=100*Freq, group=Var2, col=Var2)) + scale_y_continuous(position = "right", limits = c(0,100)) + 
+    geom_line() + theme_bw(base_size = 12) + geom_point(size=2.5) + 
+    geom_vline(xintercept = 4.1, linetype="dashed", color = "gray50", size=.5) + 
+    geom_vline(xintercept = 6.1, linetype="solid", color = "gray50", size=.5) + 
+    theme(axis.title.x=element_blank(), axis.title.y=element_blank(), legend.position = "none", plot.title = element_blank(),axis.text.x=element_blank(),axis.ticks.x=element_blank()) + 
+    scale_color_manual(values=c("gray45", "gray10", "gray75"))
 }
 
-pdf(file = "results/malestage-line-plots.pdf", width = 4.5, height = 8)
+pdf(file = "results/malestage-line-plots.pdf", width = 4.8, height = 8)
 do.call(grid.arrange, c(c(p[1], p[4], p[2], p[5], p[3]), list(ncol=1, nrow=5)))
 dev.off()
 
 # Generate plot just for legend 
 pdf(file = "results/malestage-line-plots-legend.pdf", width = 4.5, height = 2)
-ggplot(data=subset(malestage.treats[[i]], Var2!="0"), aes(x=Var1, y=100*Freq, group=Var2, col=Var2)) + geom_line() + theme_bw(base_size = 12) + geom_point(size=2.5) + scale_color_manual(values=c("gray45", "gray10", "gray75"),name=element_blank(), labels = c("Early", "Advanced/Ripe", "Spawned")) + theme(axis.title.x=element_blank(), axis.title.y=element_blank(), legend.position = "bottom", axis.text.y = element_blank(), axis.ticks.y = element_blank(), legend.title=element_text(size=14), legend.text = element_text(size=14))  + guides(color = guide_legend(override.aes = list(size=6))) + scale_x_discrete(labels= c("Nov 30", "Dec 20", "Jan 4", "Jan 23", "Feb 9", "Feb 27", "Mar 3", "Mar 23"))
+ggplot(data=subset(malestage.treats[[i]], Var2!="0"), aes(x=Var1, y=100*Freq, group=Var2, col=Var2)) + geom_line() + theme_bw(base_size = 12) + geom_point(size=2.5) + scale_color_manual(values=c("gray45", "gray10", "gray75"),name=element_blank(), labels = c("Early", "Advanced/Ripe", "Spawned")) + theme(axis.title.x=element_blank(), axis.title.y=element_blank(), legend.position = "bottom", axis.text.y = element_blank(), axis.ticks.y = element_blank(), legend.title=element_text(size=14), legend.text = element_text(size=14))  + guides(color = guide_legend(override.aes = list(size=6))) + scale_x_discrete(labels= c("Nov 30", "Dec 20", "Jan 4", "Jan 23", "Feb 9", "Feb 27", "Mar 13", "Mar 23"))
 dev.off()
 
 # plot female stage over time 
@@ -545,17 +552,27 @@ for (i in 1:length(treats)) {
 }
 p <- list()
 for (i in 1:length(treats)){
-  p[[i]] <- ggplot(data=subset(femalestage.treats[[i]], Var2!="0"), aes(x=Var1, y=100*Freq, group=Var2, col=Var2)) + geom_line() + theme_bw(base_size = 12) + geom_point(size=2) + ylim(c(0,100)) + geom_vline(xintercept = 4.1, linetype="solid", color = "gray50", size=.5) + geom_vline(xintercept = 6.1, linetype="dashed", color = "gray50", size=.5)+ theme(axis.title.x=element_blank(), axis.title.y=element_blank(), legend.position = "none", plot.title = element_blank(), axis.text.y=element_blank(),axis.ticks.y=element_blank(),axis.text.x=element_blank(),axis.ticks.x=element_blank()) + scale_color_manual(values=c("gray45", "gray10", "gray75")) 
+  p[[i]] <- ggplot(data=subset(femalestage.treats[[i]], Var2!="0"), aes(x=Var1, y=100*Freq, group=Var2, col=Var2)) + geom_line() + theme_bw(base_size = 12) + geom_point(size=2) + ylim(c(0,100)) + geom_vline(xintercept = 4.1, linetype="dashed", color = "gray50", size=.5) + geom_vline(xintercept = 6.1, linetype="solid", color = "gray50", size=.5)+ theme(axis.title.x=element_blank(), axis.title.y=element_blank(), legend.position = "none", plot.title = element_blank(), axis.text.y=element_blank(),axis.ticks.y=element_blank(),axis.text.x=element_blank(),axis.ticks.x=element_blank()) + scale_color_manual(values=c("gray45", "gray10", "gray75")) 
 }
 pdf(file = "results/femalestage-line-plots.pdf", width = 4.5, height = 8)
 do.call(grid.arrange, c(c(p[1], p[4], p[2], p[5], p[3]), list(ncol=1, nrow=5)))
 dev.off()
 
 pdf(file = "results/femalestage-line-plots-legend.pdf", width = 4.5, height = 2)
-ggplot(data=subset(femalestage.treats[[i]], Var2!="0"), aes(x=Var1, y=100*Freq, group=Var2, col=Var2)) + geom_line() + theme_bw(base_size = 12) + geom_point(size=2) + scale_color_manual(values=c("gray45", "gray10", "gray75"),name=element_blank(), labels = c("Early", "Advanced/Ripe", "Spawned")) + theme(axis.title.x=element_blank(), axis.title.y=element_blank(), legend.position = "bottom", axis.text.y = element_blank(), axis.ticks.y = element_blank(), legend.title=element_text(size=14), legend.text = element_text(size=14)) + guides(color = guide_legend(override.aes = list(size=6))) + scale_x_discrete(labels= c("Nov 30", "Dec 20", "Jan 4", "Jan 23", "Feb 9", "Feb 27", "Mar 3", "Mar 23"))
+ggplot(data=subset(femalestage.treats[[i]], Var2!="0"), aes(x=Var1, y=100*Freq, group=Var2, col=Var2)) + geom_line() + theme_bw(base_size = 12) + geom_point(size=2) + scale_color_manual(values=c("gray45", "gray10", "gray75"),name=element_blank(), labels = c("Early", "Advanced/Ripe", "Spawned")) + theme(axis.title.x=element_blank(), axis.title.y=element_blank(), legend.position = "bottom", axis.text.y = element_blank(), axis.ticks.y = element_blank(), legend.title=element_text(size=14), legend.text = element_text(size=14)) + guides(color = guide_legend(override.aes = list(size=6))) + scale_x_discrete(labels= c("Nov 30", "Dec 20", "Jan 4", "Jan 23", "Feb 9", "Feb 27", "Mar 13", "Mar 23"))
 dev.off()
 
 
+# extra plots for fun 
+ 
+library(ggplot2)
+library(dplyr)
+
+ggplot(data=subset(histo, MALE.STAGE !="NA"), aes(y=FEMALE.STAGE, x=MALE.STAGE, col=SEX.COL)) + theme_bw(base_size = 12) + geom_jitter(size=2) + xlab("sperm stage") + ylab("egg stage")  
+
+ggplot(data=subset(histo, MALE.STAGE !="NA"), aes(x=FEMALE.STAGE, y=Est..Tissue.Weight..g., col=SEX.COL)) + theme_bw(base_size = 12) + geom_jitter(size=2) 
+
+ggplot(data=subset(histo, MALE.STAGE !="NA"), aes(x=MALE.STAGE, y=Est..Tissue.Weight..g., col=SEX.COL)) + theme_bw(base_size = 12) + geom_jitter(size=2) 
 
 
 # 

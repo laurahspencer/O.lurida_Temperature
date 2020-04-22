@@ -29,7 +29,7 @@ plot(Live.50.days/(3*800) ~ Date.stocked, data=survival, col=TREAT, pch=8)
 jpeg(file="results/boxplot-survival.jpeg", width = 900, height = 600)
 plot(Live.50.days/(3*800) ~ TREAT, data=survival, col=c("skyblue3", "seagreen3", "indianred2",  "orange1"), main="Mean % survival across 12 groups per treatment", xlab="Treatment", ylab="Mean % survival", cex.lab=1.5, cex.main=1.5, par(mar=c(5,5,4.1,2.1)))
 dev.off()
-View(survival)
+
 max(survival$Date.stocked)-min(survival$Date.stocked)
 
 #levels(survival$TREAT) #color order ="skyblue3", "seagreen3", "indianred2",  "orange1"
@@ -44,8 +44,14 @@ jpeg(file="results/boxplot-survival-rep.jpeg", width = 900, height = 600)
 plot(Live.35.days/(800) ~ TRT.REP, data=survival, col=c("seagreen3", "seagreen3", "orange1","orange1", "skyblue3", "skyblue3", "indianred2",  "indianred2"), main="Mean % survival between treatment rep\n6 groups per rep", xlab="Treatment", ylab="Mean % survival", cex.lab=1.6, cex.main=1.5, par(mar=c(5,5,4.1,2.1)))
 dev.off()
 
-png(file="results/jitter-survival.png", width =575, height = 475)
-ggplot(survival, aes(x=TREAT, y=100*Live.35.days/(800))) + geom_jitter(width=0.35, size=2.5, aes(color=TREAT)) + theme_bw(base_size = 14) + labs(title="% survival, by treatment\n12 larval groups per treatment\nall replicates shown", y=("% survival"), x="Treatment replicate") + scale_color_manual(values=c('#0571b0','#92c5de','#ca0020','#f4a582'), name=element_blank(), labels = c("Cold / High Food", "Cold / Low Food", "Warm / High Food", "Warm / Low Food")) + theme(text = element_text(size = 16)) + theme(axis.title.x=element_blank(), axis.text.x=element_blank(),axis.ticks.x=element_blank())
+pdf(file="results/jitter-survival.pdf", width =7, height = 4.75)
+ggplot(survival, aes(x=TREAT, y=100*Live.35.days/(800))) + 
+  geom_violin(aes(color=TREAT)) + 
+  geom_jitter(width=0.35, size=2.5, aes(color=TREAT)) + 
+  theme_bw(base_size = 14) + 
+  labs(title="% survival, by parental treatment", y=("% survival"), x="Treatment replicate") + 
+  scale_color_manual(values=c('#0571b0','#92c5de','#ca0020','#f4a582'), name=element_blank(), labels = c("Cold / High Food", "Cold / Low Food", "Warm / High Food", "Warm / Low Food")) + theme(text = element_text(size = 16)) + 
+  theme(axis.title.x=element_blank(), axis.text.x=element_blank(),axis.ticks.x=element_blank())
 dev.off()
 
 
@@ -151,22 +157,25 @@ plot(glm.collect.trt)
 
 # Create a master dataframe, merged with larval size, to test effects on survival 
 survival.collect$Sample.number <- as.factor(survival.collect$Sample.number) #first convert sample # to factor 
-master <- merge(x=dcast(length.mean,  Sample ~ Length.Width, value.var="mm"), y=survival.collect, by.x="Sample", by.y="Sample.number", all.x=T, all.y=T) #merge 
+master <- merge(x=average.all[,c("Sample.number", "Length", "Width")], y=survival.collect, by="Sample.number", all.x=T, all.y=T)  #merge 
 
 # Test each factor separately 
-Anova(glm(cbind(Live.35.days, Dead.35.days) ~ Date.stocked, data=master, quasibinomial)) #sign.
+Anova(glm(cbind(Live.35.days, Dead.35.days) ~ Date.stocked, data=master, quasibinomial)) # Date stocked sign.
 summary(glm(cbind(Live.35.days, Dead.35.days) ~ Date.stocked, data=master, quasibinomial)) #positive eatimate
-Anova(glm(cbind(Live.35.days, Dead.35.days) ~ Live.Larvae, data=master, quasibinomial)) #sign.
-summary(glm(cbind(Live.35.days, Dead.35.days) ~ Live.Larvae, data=master, quasibinomial)) #positive eatimate
+plot(100*(Live.35.days/800) ~ Date.stocked, data=master) #survival increases with time
 
-Anova(glm(cbind(Live.35.days, Dead.35.days) ~ length, data=master, quasibinomial)) #not
-Anova(glm(cbind(Live.35.days, Dead.35.days) ~ width, data=master, quasibinomial)) #not
-Anova(glm(cbind(Live.35.days, Dead.35.days) ~ I(length*width), data=master, quasibinomial)) #not 
+Anova(glm(cbind(Live.35.days, Dead.35.days) ~ Live.Larvae, data=master, quasibinomial)) # live larvae collected sign.
+summary(glm(cbind(Live.35.days, Dead.35.days) ~ Live.Larvae, data=master, quasibinomial)) #positive estimate
+plot(100*(Live.35.days/800) ~ Live.Larvae, data=master) #survival increases with time
+
+Anova(glm(cbind(Live.35.days, Dead.35.days) ~ Length, data=master, quasibinomial)) #not
+Anova(glm(cbind(Live.35.days, Dead.35.days) ~ Width, data=master, quasibinomial)) #not
+Anova(glm(cbind(Live.35.days, Dead.35.days) ~ I(Length*Width), data=master, quasibinomial)) #not 
 Anova(glm(cbind(Live.35.days, Dead.35.days) ~ TEMP, data=master, quasibinomial)) #not
 Anova(glm(cbind(Live.35.days, Dead.35.days) ~ FOOD, data=master, quasibinomial)) #not
 
 # Test ALL factors in one model, no interaction
-Anova(glm.all <- glm(cbind(Live.35.days, Dead.35.days) ~ Live.Larvae + length + width + Date.stocked + TEMP + FOOD, data=master, quasibinomial))
+Anova(glm.all <- glm(cbind(Live.35.days, Dead.35.days) ~ Live.Larvae + Length + Width + Date.stocked + TEMP + FOOD, data=master, quasibinomial))
 
 # Date stocked against treatments 
 Anova(glm.all <- glm(cbind(Live.35.days, Dead.35.days) ~ Date.stocked*TEMP + Date.stocked*FOOD, data=master, quasibinomial))
@@ -198,12 +207,23 @@ summary(glm.all <- glm(cbind(Live.35.days, Dead.35.days) ~ as.numeric(Date.stock
 summary(glm.all <- glm(cbind(Live.35.days, Dead.35.days) ~ as.numeric(Date.stocked) + Live.Larvae, data=subset(master, TEMP=="Warm"), quasibinomial)) 
 
 # size ~ survival plots 
-png(filename = "results/larval-shell-length-survival.png", width = 600, height = 325)
-ggplot(master, aes(x=1000*length, y=100*Live.35.days/(800))) + geom_point(size=3.5, aes(color=TREAT.x)) + labs(title="Larval survival ~ shell length upon release", y=("% survival"), x="Shell length (µm)") + theme_bw(base_size = 14) + scale_color_manual(values=c('#0571b0','#92c5de','#ca0020','#f4a582'), name=element_blank(), labels = c("Cold / High Food", "Cold / Low Food", "Warm / High Food", "Warm / Low Food"))
+pdf(file = here::here("results", "larval-shell-length-survival.pdf"), width = 8.0, height = 5.25)
+master %>% dplyr::select(Length, Live.35.days, TREAT.x) %>% 
+  filter(!is.na(TREAT.x), !is.na(Length)) %>% 
+  mutate(TREAT.x = factor(TREAT.x, levels=c("Cold - High", "Cold - Low", "Warm - High", "Warm - Low"))) %>%
+ggplot(aes(x=Length, y=100*Live.35.days/(800))) + 
+  geom_point(size=2.5, aes(color=TREAT.x)) + 
+  labs(title="Larval survival ~ shell width upon release", 
+       y=("% Survival"), 
+       x="Shell Width (µm)") + 
+  theme_bw(base_size = 14) + 
+  scale_color_manual(values=c('#0571b0','#92c5de','#ca0020','#f4a582'),
+      name=element_blank(), 
+      labels = c("Cold / High Food", "Cold / Low Food", "Warm / High Food", "Warm / Low Food"))
 dev.off()
 
 png(filename = "results/larval-shell-width-survival.png", width = 600, height = 325)
-ggplot(master, aes(x=1000*width, y=100*Live.35.days/(800))) + geom_point(size=3.5, aes(color=TREAT.x)) + labs(title="Larval survival ~ shell width upon release", y=("% survival"), x="Shell width (µm)", size=14) + theme_bw(base_size = 14) + scale_color_manual(values=c('#0571b0','#92c5de','#ca0020','#f4a582'), name=element_blank(), labels = c("Cold / High Food", "Cold / Low Food", "Warm / High Food", "Warm / Low Food"))
+ggplot(master, aes(x=Width, y=100*Live.35.days/(800))) + geom_point(size=2.5, aes(color=TREAT.x)) + labs(title="Larval survival ~ shell height upon release", y=("% survival"), x="Shell height (µm)", size=14) + theme_bw(base_size = 14) + scale_color_manual(values=c('#0571b0','#92c5de','#ca0020','#f4a582'), name=element_blank(), labels = c("Cold / High Food", "Cold / Low Food", "Warm / High Food", "Warm / Low Food"))
 dev.off()
 
 # NEED TO FIX 
@@ -212,3 +232,9 @@ plot(x=master$length, y=100*(master$Live.35.days/800), ylab="% Survival to Posts
 
 # Plot mean survival against mean width 
 plot(x=master$width, y=100*(master$Live.35.days/800), ylab="% Survival to Postset", xlab="Shell width upon release (um)", pch=16, cex=1.4, col="gray45", main="Larval survival ~ Shell width upon release")
+
+str(survival)
+mean(aggregate(Live.35.days ~ Family, data=survival, mean)[,2]) #average family sd = 26.2, mean = 85.9 
+mean(aggregate(Live.35.days ~ TRT, data=survival, sd)[,2]) #average treatment sd = 83.0, mean = 84.9
+
+sd(survival$Live.35.days)/mean(survival$Live.35.days)

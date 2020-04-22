@@ -38,9 +38,15 @@ treat_total.6wks.rep$perc.spawn <- 100*(treat_total.6wks.rep$noFemales/treat_tot
 ggplot(data=treat_total.6wks.rep, aes(x=Temperature:Food, y=perc.spawn)) + geom_boxplot() + geom_point()
 summary(treat_total.6wks.rep$perc.spawn)
 
+#Calculate cumulative larvae released through time without reps 
+Collection.6wks.cumul <- aggregate(cbind(Larvae, Larvae.norm) ~ Date + TREAT + Temperature + Food, data = Collection.6wks, sum, na.rm = TRUE) %>%
+  group_by(Temperature, Food, TREAT) %>% 
+  mutate(cum.total=cumsum(Larvae),cum.percap = cumsum(Larvae.norm),CalDay = format(Date,"%j")) %>% 
+  arrange(Date) %>% dplyr::select(Date,CalDay,TREAT,Temperature,Food,Larvae,Larvae.norm, cum.total,cum.percap)
+
 # Stats 
 
-# Daily larvae released - did it differ between treatments?
+# Ave. no. larvae released per day - did it differ between treatments?
 hist((na.omit(subset(Collection.6wks.cumul, Larvae>0)$Larvae))^(1/3))
 qqnorm(na.omit(subset(Collection.6wks.cumul, Larvae>0)$Larvae)^(1/3))
 qqline(na.omit(subset(Collection.6wks.cumul, Larvae>0)$Larvae)^(1/3))
@@ -95,12 +101,6 @@ aggregate(Larvae ~ Temperature + Food, data = Collection.6wks, sd, na.rm = TRUE)
 
 ### ==========
 # New plots for paper 8/26/2019
-
-#Calculate cumulative larvae released through time without reps 
-Collection.6wks.cumul <- aggregate(cbind(Larvae, Larvae.norm) ~ Date + TREAT + Temperature + Food, data = Collection.6wks, sum, na.rm = TRUE) %>%
-  group_by(Temperature, Food, TREAT) %>% 
-  mutate(cum.total=cumsum(Larvae),cum.percap = cumsum(Larvae.norm),CalDay = format(Date,"%j")) %>% 
-  arrange(Date) %>% dplyr::select(Date,CalDay,TREAT,Temperature,Food,Larvae,Larvae.norm, cum.total,cum.percap)
 
 p <- list()
 p[[1]] <- ggplot(data=Collection.6wks.cumul, aes(x=Date, y=cum.percap, group=TREAT, color=TREAT)) + 
