@@ -324,13 +324,14 @@ average.all %>%
 ggplot(aes(x=TEMP:FOOD, y=Length)) + 
 geom_boxplot(lwd=0.5, aes(col=TEMP:FOOD)) + 
   theme_bw(base_size = 13) + 
-  labs(title="Larval shell width upon release", y=("shell width (µm)"), x="treatment") + scale_color_manual(
-    values=c('#0571b0','#92c5de','#ca0020','#f4a582'), name=element_blank(), 
+  labs(title="Larval shell width upon release", y=("shell width (µm)"), x="treatment") + 
+  scale_color_manual(values=c('#0571b0','#92c5de','#ca0020','#f4a582'), name=element_blank(), 
     labels = c("Cold / High Food", "Cold / Low Food", "Warm / High Food", "Warm / Low Food")) + 
   theme(text = element_text(size = 12)) + 
   theme(axis.title.x=element_blank(), 
         axis.text.x=element_blank(),
         axis.ticks.x=element_blank()) + 
+  ylim(c(160, 215)) + 
   geom_jitter(width=0.2, aes(col=TEMP:FOOD))
 dev.off()
 

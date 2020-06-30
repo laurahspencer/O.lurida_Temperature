@@ -1,6 +1,6 @@
 # Adult size and mortality 
 
-str(histo) # use "histo" dataframe, imported in the Gonad-histology.R script 
+#str(histo) # use "histo" dataframe, imported in the Gonad-histology.R script 
 
 mean(subset(histo, TREAT!="Wild")$Length..cm., na.rm=TRUE)*10
 sd(subset(histo, TREAT!="Wild")$Length..cm., na.rm=TRUE)*10
@@ -16,20 +16,20 @@ size.adult[(nrow(size.adult)-4):(nrow(size.adult)),"TREAT"] <- as.factor(c("A", 
 # subset(size.adult, Week!=0 & TREAT!="Wild")
 # plot mean weight over time 
 pdf("results/broodstock-weight.pdf", width = 7, height = 3.5)
-ggplot(data=subset(size.adult, TREAT!="PRE" & mean_weight<3.5), aes(x=Week, y=mean_weight, group=TREAT, col=TREAT)) + geom_line() + theme_bw(base_size = 12) + geom_point(size=3) + ylab("Mean weight (g)") + ggtitle(label = "Mean wet tissue weight in broodstock") + theme(axis.title.x = element_blank()) +
+ggplot(data=subset(size.adult, TREAT!="PRE" & mean_weight<3.5), aes(x=Week, y=mean_weight, group=TREAT, col=TREAT)) + geom_line() + theme_bw(base_size = 11) + geom_point(size=3) + ylab("Mean weight (g)") + ggtitle(label = "Mean wet tissue weight in broodstock") + theme(axis.title.x = element_blank()) +
   scale_color_manual(values=c("#92c5de",
                         "#ca0020","#0571b0","#f4a582", "gray30"),
                         name="Treatment",
                         breaks=c("C", "A", "B", "D", "Wild"),
-                        labels=c("7°C+high-food", "7°C+low-food", "10°C+high-food", "10°C+low-food", "Wild")) + scale_x_discrete(labels= c("Nov 30", "Dec 20", "Jan 4", "Jan 23", "Feb 9", "Feb 27", "Mar 3", "Mar 23")) + 
-  geom_vline(xintercept = 4.1, linetype="dashed", color = "gray50", size=.5) + 
-  geom_vline(xintercept = 6.1, linetype="dashed", color = "gray50", size=.5)
+                        labels=c("7°C+high-food", "7°C+low-food", "10°C+high-food", "10°C+low-food", "Wild")) + scale_x_discrete(labels= c("Nov 30", "Dec 20", "Jan 4", "Jan 23", "Feb 9", "Feb 27", "Mar 3", "Mar 23")) #+ 
+  #geom_vline(xintercept = 4.1, linetype="dashed", color = "gray50", size=.5) + 
+  #geom_vline(xintercept = 6.1, linetype="solid", color = "gray50", size=.5)
 #+geom_errorbar(aes(ymin=mean_weight-sd_weight, ymax=mean_weight+sd_weight), width=.1)
 dev.off()
 
 # Does weight change over time, diff by treat? 
-anova(lm(Est..Tissue.Weight..g. ~ as.numeric(Week)+factor(TREAT), data=subset(histo, TREAT!="Wild")))
-summary(lm(Est..Tissue.Weight..g. ~ as.numeric(Week)+factor(TREAT), data=subset(histo, TREAT!="Wild"))) # overall, tissue weight same by treat.
+anova(lm(Est..Tissue.Weight..g. ~ as.numeric(Week)*factor(TREAT), data=subset(histo, TREAT!="Wild")))
+summary(lm(Est..Tissue.Weight..g. ~ as.numeric(Week)*factor(TREAT), data=subset(histo, TREAT!="Wild"))) # overall, tissue weight same by treat.
 anova(lm(Est..Tissue.Weight..g. ~ as.numeric(Week), data=subset(histo, TREAT!="Wild" & TREAT!="PRE"))) 
 summary(lm(Est..Tissue.Weight..g. ~ as.numeric(Week), data=subset(histo, TREAT!="Wild" & TREAT!="PRE"))) 
 # weight = 3.28 - 0.0929x (where x=week)
