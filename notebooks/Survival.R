@@ -118,10 +118,19 @@ plot_ly(data = survival, x = ~Date.stocked, y = ~100*(Live.50.days/(800*3)), typ
          legend = list(x=.05, y=.95))
 
 # plot each group separately 
-ggplot(subset(survival, TRT == "A"), aes(x=Date.stocked, y=100*(Live.35.days/800))) + geom_point(size=3, aes(color=TRT.REP)) + labs(title="Treatment A: Low Food, Low Temp\n% survival by broodstock replicate and date larvae was released", y=("Percent Survival"), x=("Date Released")) + ylim(0,100)
-ggplot(subset(survival, TRT == "B"), aes(x=Date.stocked, y=100*(Live.35.days/800))) + geom_point(size=3, aes(color=TRT.REP)) + labs(title="Treatment B: Low Food, High Temp\n% survival by broodstock replicate and date larvae was released", y=("Percent Survival"), x=("Date Released"))  + ylim(0,100)
-ggplot(subset(survival, TRT == "C"), aes(x=Date.stocked, y=100*(Live.35.days/800))) + geom_point(size=3, aes(color=TRT.REP)) + labs(title="Treatment C: High Food, Low Temp\n% survival by broodstock replicate and date larvae was released", y=("Percent Survival"), x=("Date Released"))  + ylim(0,100)
-ggplot(subset(survival, TRT == "D"), aes(x=Date.stocked, y=100*(Live.35.days/800))) + geom_point(size=3, aes(color=TRT.REP)) + labs(title="Treatment D: High Food, High Temp\n% survival by broodstock replicate and date larvae was released", y=("Percent Survival"), x=("Date Released")) + ylim(0,100) 
+
+
+ggplot(subset(survival, TRT == "A"), aes(x=Date.stocked, y=100*(Live.35.days/800))) + geom_point(size=3, aes(color=TRT.REP)) + labs(title="Treatment A: Low Food, Low Temp\n% survival by broodstock replicate and date larvae was released", y=("Percent Survival"), x=("Date Released")) + ylim(0,100) + theme_minimal()
+ggplot(subset(survival, TRT == "B"), aes(x=Date.stocked, y=100*(Live.35.days/800))) + geom_point(size=3, aes(color=TRT.REP)) + labs(title="Treatment B: Low Food, High Temp\n% survival by broodstock replicate and date larvae was released", y=("Percent Survival"), x=("Date Released"))  + ylim(0,100) + theme_minimal()
+ggplot(subset(survival, TRT == "C"), aes(x=Date.stocked, y=100*(Live.35.days/800))) + geom_point(size=3, aes(color=TRT.REP)) + labs(title="Treatment C: High Food, Low Temp\n% survival by broodstock replicate and date larvae was released", y=("Percent Survival"), x=("Date Released"))  + ylim(0,100) + theme_minimal()
+ggplot(subset(survival, TRT == "D"), aes(x=Date.stocked, y=100*(Live.35.days/800))) + geom_point(size=3, aes(color=TRT.REP)) + labs(title="Treatment D: High Food, High Temp\n% survival by broodstock replicate and date larvae was released", y=("Percent Survival"), x=("Date Released")) + ylim(0,100) + theme_minimal()
+
+p5 <- ggplotly(ggplot(survival, aes(x=Date.stocked, y=100*(Live.35.days/800))) + geom_point(size=3, aes(color=TRT.REP)) + labs(title="Survival @ 5 weeks ~ Date Stocked", y=("Percent Survival"), x=("Date Released")) + ylim(0,100) + theme_minimal() + facet_wrap(~TRT))
+htmlwidgets::saveWidget(as_widget(p5), file = "larval-survival-time-5weeks-trt-reps.html")
+
+p7 <- ggplotly(ggplot(survival, aes(x=Date.stocked, y=100*(Live.50.days/(800*3)))) + geom_point(size=3, aes(color=TRT.REP)) + labs(title="Survival @ 7 weeks ~ Date Stocked", y=("Percent Survival"), x=("Date Released")) + ylim(0,100) + theme_minimal() + facet_wrap(~TRT))
+htmlwidgets::saveWidget(as_widget(p7), file = "larval-survival-time-7weeks-trt-reps.html")
+
 
 # Does survival correlate with %live/dead in newly released larvae? 
 survival.collect <- merge(x=survival, y=Collection[c(5,14,15,16,20)], by.x="Family", by.y="Group", all.x =TRUE, all.y=FALSE)
@@ -136,9 +145,8 @@ ggplot(survival.collect, aes(x=Live.Larvae, y=100*Live.35.days/(800))) + geom_po
 dev.off()
 
 png(file="results/larvael-surv-time-col.png", width = 600, height = 325)
-ggplot(subset(survival, TRT=="D"), aes(x=Date.stocked, y=100*(Live.35.days/800))) + theme_bw(base_size = 14) + geom_point(size=2.5, aes(color=TREAT)) + labs(title="% Survival by treatment and date larvae was released", y=("Percent Survival"), x=("Date Released")) + ylim(0,60) #+ scale_color_manual(values=c('#0571b0','#92c5de','#ca0020','#f4a582'), name=element_blank(), labels = c("Cold / High Food", "Cold / Low Food", "Warm / High Food", "Warm / Low Food"))
+ggplot(survival, aes(x=Date.stocked, y=100*(Live.35.days/800))) + theme_bw(base_size = 14) + geom_point(size=2.5, aes(color=TREAT)) + labs(title="% Survival by treatment and date larvae released", y=("Percent Survival"), x=("Date Released")) + ylim(0,60) + scale_color_manual(values=c('#0571b0','#92c5de','#ca0020','#f4a582'), name=element_blank(), labels = c("Cold / High Food", "Cold / Low Food", "Warm / High Food", "Warm / Low Food"))
 dev.off()
-
 
 
 # Run GLM 

@@ -4,7 +4,7 @@
 
 mean(subset(histo, TREAT!="Wild")$Length..cm., na.rm=TRUE)*10
 sd(subset(histo, TREAT!="Wild")$Length..cm., na.rm=TRUE)*10
-
+View(histo)
 size.adult <- histo %>%
   filter(!is.na(TREAT)) %>%
   group_by(TREAT, Week) %>%
@@ -15,13 +15,15 @@ size.adult[(nrow(size.adult)-4):(nrow(size.adult)),"TREAT"] <- as.factor(c("A", 
 
 # subset(size.adult, Week!=0 & TREAT!="Wild")
 # plot mean weight over time 
+
 pdf("results/broodstock-weight.pdf", width = 7, height = 3.5)
-ggplot(data=subset(size.adult, TREAT!="PRE" & mean_weight<3.5), aes(x=Week, y=mean_weight, group=TREAT, col=TREAT)) + geom_line() + theme_bw(base_size = 11) + geom_point(size=3) + ylab("Mean weight (g)") + ggtitle(label = "Mean wet tissue weight in broodstock") + theme(axis.title.x = element_blank()) +
-  scale_color_manual(values=c("#92c5de",
-                        "#ca0020","#0571b0","#f4a582", "gray30"),
-                        name="Treatment",
-                        breaks=c("C", "A", "B", "D", "Wild"),
-                        labels=c("7°C+high-food", "7°C+low-food", "10°C+high-food", "10°C+low-food", "Wild")) + scale_x_discrete(labels= c("Nov 30", "Dec 20", "Jan 4", "Jan 23", "Feb 9", "Feb 27", "Mar 3", "Mar 23")) #+ 
+ggplot(data=subset(size.adult, TREAT!="PRE" & mean_weight<3.5), aes(x=Week, y=mean_weight/mean_length, group=TREAT, col=TREAT)) + geom_line() + theme_bw(base_size = 11) + geom_point(size=3) + ylab("Mean weight standardized by shell length (g/cm)") + ggtitle(label = "Mean plumpness of broodstock over time") + theme(axis.title.x = element_blank()) +
+  scale_color_manual(
+    values=c("#0571b0","#92c5de","#ca0020","#f4a582","gray30"),
+    name="Treatment",
+                        breaks=c("C", "A", "D", "B", "Wild"),
+                        labels=c("7°C+high-food", "7°C+low-food", "10°C+high-food", "10°C+low-food", "Wild")) +
+  scale_x_discrete(labels= c("Nov 30", "Dec 20", "Jan 4", "Jan 23", "Feb 9", "Feb 27", "Mar 3", "Mar 23")) #+ 
   #geom_vline(xintercept = 4.1, linetype="dashed", color = "gray50", size=.5) + 
   #geom_vline(xintercept = 6.1, linetype="solid", color = "gray50", size=.5)
 #+geom_errorbar(aes(ymin=mean_weight-sd_weight, ymax=mean_weight+sd_weight), width=.1)

@@ -48,7 +48,7 @@ larvalsize <- larvalsize.path %>%
 How many larvae were measured per sample? 
 
 ```{r}
-ngroups <- larvalsize %>% group_by(sheet) %>% tally() %>% View()
+ngroups <- larvalsize %>% group_by(sheet) %>% tally()
 ```
 
 

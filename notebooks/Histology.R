@@ -482,8 +482,8 @@ test <- as.data.frame(prop.table(test, margin = 1))
 ggplot(data=subset(test, Var2!=0), aes(x=Var1, y=Freq, group=Var2, col=Var2)) + geom_line() + theme_bw(base_size = 12) + geom_point(size=3) + ylab("Frequency") + scale_color_manual(values=c("#df65b0","#dd1c77","#980043","#d7b5d8")) 
 
 
-### ===================================================================
-### ------------------------------------------ Line plots -------------
+### =================================================================== 
+### ------------------------------------------ Line plots for paper!!! -------------
 
 # Plot % female, male over time, by treatment (exclude H)
 
@@ -494,19 +494,29 @@ sexcol.treats <- list()
 for (i in 1:length(treats)) {
   sexcol.treats[[i]] <- as.data.frame(prop.table(table(subset(histo, TREAT==treats[i] | TREAT=="PRE" )$Week, subset(histo, TREAT==treats[i] | TREAT=="PRE" )$SEX.COL), margin=1))
 }
+
 p <- list()
-for (i in 1:length(treats)){
-  p[[i]] <- ggplot(data=subset(sexcol.treats[[i]], Var2=="F" | Var2=="M" | Var2=="H"), aes(x=Var1, y=100*Freq, group=Var2, col=Var2)) + geom_line() + theme_bw(base_size = 12) + geom_point(size=2.5) + scale_color_manual(values=c("gray10", "gray45", "gray75")) + theme(legend.position = "none", axis.title.x=element_blank(), axis.title.y=element_blank(), plot.title = element_blank(), axis.text.y=element_blank(),axis.ticks.y=element_blank(), axis.text.x = element_blank(), axis.ticks.x = element_blank()) + ylim(c(0,100)) + geom_vline(xintercept = 4.1, linetype="dashed", color = "gray50", size=.5) + geom_vline(xintercept = 6.1, linetype="solid", color = "gray50", size=.5)
+# plot wild samples, w/o vertical lines 
+p[[1]] <- ggplot(data=subset(sexcol.treats[[1]], Var2=="F" | Var2=="M" | Var2=="H"), aes(x=Var1, y=100*Freq, group=Var2, col=Var2)) + geom_line() + theme_bw(base_size = 12) + geom_point(size=2.5) + theme(legend.position = "none", axis.title.x=element_blank(), axis.title.y=element_blank(), plot.title = element_blank(), axis.text.y=element_blank(),axis.ticks.y=element_blank(), axis.text.x = element_blank(), axis.ticks.x = element_blank()) + ylim(c(0,100)) + 
+  #scale_color_manual(values=c("gray10", "gray45", "gray75")) + 
+  scale_color_manual(values=c("#b3cde3", "#8c96c6", "#88419d"))
+
+for (i in 2:length(treats)){
+  p[[i]] <- ggplot(data=subset(sexcol.treats[[i]], Var2=="F" | Var2=="M" | Var2=="H"), aes(x=Var1, y=100*Freq, group=Var2, col=Var2)) + geom_line() + theme_bw(base_size = 12) + geom_point(size=2.5) + theme(legend.position = "none", axis.title.x=element_blank(), axis.title.y=element_blank(), plot.title = element_blank(), axis.text.y=element_blank(),axis.ticks.y=element_blank(), axis.text.x = element_blank(), axis.ticks.x = element_blank()) + ylim(c(0,100)) + geom_vline(xintercept = 4.1, linetype="dashed", color = "gray50", size=.5) + geom_vline(xintercept = 6.1, linetype="solid", color = "gray50", size=.5) + 
+    #scale_color_manual(values=c("gray10", "gray45", "gray75")) + 
+    scale_color_manual(values=c("#b3cde3", "#8c96c6", "#88419d"))
 }
 pdf(file = "results/sex-line-plots.pdf", width = 4.5, height = 8)
 do.call(grid.arrange, c(c(p[1], p[4], p[2], p[5], p[3]), list(ncol=1, nrow=5)))
 dev.off()
 
 pdf(file = "results/sex-line-plots-legend.pdf", width = 4.5, height = 2)
-ggplot(data=subset(sexcol.treats[[i]], Var2=="F" | Var2=="M" | Var2=="H"), aes(x=Var1, y=100*Freq, group=Var2, col=Var2)) + geom_line() + theme_bw(base_size = 12) + geom_point(size=2.5) + scale_color_manual(values=c("gray10", "gray45", "gray75"), name=element_blank(), labels = c("Female / HPF", "Male / HPM", "Hermaph.")) + 
+ggplot(data=subset(sexcol.treats[[i]], Var2=="F" | Var2=="M" | Var2=="H"), aes(x=Var1, y=100*Freq, group=Var2, col=Var2)) + geom_line() + theme_bw(base_size = 12) + geom_point(size=2.5) +
   theme(axis.title.x=element_blank(), axis.title.y=element_blank(), legend.position = "bottom", 
         legend.title=element_text(size=13), legend.text = element_text(size=13)) + 
-  guides(color = guide_legend(override.aes = list(size=6))) + scale_x_discrete(labels= c("Nov 30", "Dec 20", "Jan 4", "Jan 23", "Feb 9", "Feb 27", "Mar 13", "Mar 23"))
+  guides(color = guide_legend(override.aes = list(size=6))) + scale_x_discrete(labels= c("Nov 30", "Dec 20", "Jan 4", "Jan 23", "Feb 9", "Feb 27", "Mar 13", "Mar 23")) + 
+  #scale_color_manual(values=c("gray10", "gray45", "gray75"), name=element_blank(), labels = c("Female / HPF", "Male / HPM", "Hermaph.")) +
+  scale_color_manual(values=c("#b3cde3", "#8c96c6", "#88419d"), name=element_blank(), labels = c("Female / HPF", "Male / HPM", "Hermaph."))
 dev.off()
 
 # Plot male stage over time 
@@ -526,22 +536,33 @@ for (i in 1:length(treats)) {
 }
 
 p <- list()
-for (i in 1:length(treats)){
+p[[1]] <- ggplot(data=subset(malestage.treats[[1]], Var2!="0"), aes(x=Var1, y=100*Freq, group=Var2, col=Var2)) + scale_y_continuous(position = "right", limits = c(0,100)) + 
+  geom_line() + theme_bw(base_size = 12) + geom_point(size=2.5) + 
+  #geom_vline(xintercept = 4.1, linetype="dashed", color = "gray50", size=.5) + 
+  #geom_vline(xintercept = 6.1, linetype="solid", color = "gray50", size=.5) + 
+  theme(axis.title.x=element_blank(), axis.title.y=element_blank(), legend.position = "none", plot.title = element_blank(),axis.text.x=element_blank(),axis.ticks.x=element_blank()) + 
+  #scale_color_manual(values=c("gray45", "gray10", "gray75"))
+  scale_color_manual(values=c("#bdc9e1", "#67a9cf", "#02818a"))
+  
+
+for (i in 2:length(treats)){
   p[[i]] <- ggplot(data=subset(malestage.treats[[i]], Var2!="0"), aes(x=Var1, y=100*Freq, group=Var2, col=Var2)) + scale_y_continuous(position = "right", limits = c(0,100)) + 
     geom_line() + theme_bw(base_size = 12) + geom_point(size=2.5) + 
     geom_vline(xintercept = 4.1, linetype="dashed", color = "gray50", size=.5) + 
     geom_vline(xintercept = 6.1, linetype="solid", color = "gray50", size=.5) + 
     theme(axis.title.x=element_blank(), axis.title.y=element_blank(), legend.position = "none", plot.title = element_blank(),axis.text.x=element_blank(),axis.ticks.x=element_blank()) + 
-    scale_color_manual(values=c("gray45", "gray10", "gray75"))
+    #scale_color_manual(values=c("gray45", "gray10", "gray75"))
+    scale_color_manual(values=c("#bdc9e1", "#67a9cf", "#02818a"))
 }
-
 pdf(file = "results/malestage-line-plots.pdf", width = 4.8, height = 8)
 do.call(grid.arrange, c(c(p[1], p[4], p[2], p[5], p[3]), list(ncol=1, nrow=5)))
 dev.off()
 
 # Generate plot just for legend 
 pdf(file = "results/malestage-line-plots-legend.pdf", width = 4.5, height = 2)
-ggplot(data=subset(malestage.treats[[i]], Var2!="0"), aes(x=Var1, y=100*Freq, group=Var2, col=Var2)) + geom_line() + theme_bw(base_size = 12) + geom_point(size=2.5) + scale_color_manual(values=c("gray45", "gray10", "gray75"),name=element_blank(), labels = c("Early", "Advanced/Ripe", "Spawned")) + theme(axis.title.x=element_blank(), axis.title.y=element_blank(), legend.position = "bottom", axis.text.y = element_blank(), axis.ticks.y = element_blank(), legend.title=element_text(size=14), legend.text = element_text(size=14))  + guides(color = guide_legend(override.aes = list(size=6))) + scale_x_discrete(labels= c("Nov 30", "Dec 20", "Jan 4", "Jan 23", "Feb 9", "Feb 27", "Mar 13", "Mar 23"))
+ggplot(data=subset(malestage.treats[[i]], Var2!="0"), aes(x=Var1, y=100*Freq, group=Var2, col=Var2)) + geom_line() + theme_bw(base_size = 12) + geom_point(size=2.5) + theme(axis.title.x=element_blank(), axis.title.y=element_blank(), legend.position = "bottom", axis.text.y = element_blank(), axis.ticks.y = element_blank(), legend.title=element_text(size=14), legend.text = element_text(size=14))  + guides(color = guide_legend(override.aes = list(size=6))) + scale_x_discrete(labels= c("Nov 30", "Dec 20", "Jan 4", "Jan 23", "Feb 9", "Feb 27", "Mar 13", "Mar 23")) + 
+  #scale_color_manual(values=c("gray45", "gray10", "gray75"),name=element_blank(), labels = c("Early", "Advanced/Ripe", "Spawned")) +
+  scale_color_manual(values=c("#bdc9e1", "#67a9cf", "#02818a"),name=element_blank(), labels = c("Early", "Advanced/Ripe", "Spawned"))
 dev.off()
 
 # plot female stage over time 
@@ -551,15 +572,22 @@ for (i in 1:length(treats)) {
   femalestage.treats[[i]] <- as.data.frame(prop.table(table(subset(histo, TREAT==treats[i] | TREAT=="PRE" )$Week, subset(histo, TREAT==treats[i] | TREAT=="PRE" )$FEMSTAGE.COL2), margin=1))
 }
 p <- list()
-for (i in 1:length(treats)){
-  p[[i]] <- ggplot(data=subset(femalestage.treats[[i]], Var2!="0"), aes(x=Var1, y=100*Freq, group=Var2, col=Var2)) + geom_line() + theme_bw(base_size = 12) + geom_point(size=2) + ylim(c(0,100)) + geom_vline(xintercept = 4.1, linetype="dashed", color = "gray50", size=.5) + geom_vline(xintercept = 6.1, linetype="solid", color = "gray50", size=.5)+ theme(axis.title.x=element_blank(), axis.title.y=element_blank(), legend.position = "none", plot.title = element_blank(), axis.text.y=element_blank(),axis.ticks.y=element_blank(),axis.text.x=element_blank(),axis.ticks.x=element_blank()) + scale_color_manual(values=c("gray45", "gray10", "gray75")) 
+
+p[[1]] <- ggplot(data=subset(femalestage.treats[[1]], Var2!="0"), aes(x=Var1, y=100*Freq, group=Var2, col=Var2)) + geom_line() + theme_bw(base_size = 12) + geom_point(size=2) + ylim(c(0,100)) + theme(axis.title.x=element_blank(), axis.title.y=element_blank(), legend.position = "none", plot.title = element_blank(), axis.text.y=element_blank(),axis.ticks.y=element_blank(),axis.text.x=element_blank(),axis.ticks.x=element_blank()) + #scale_color_manual(values=c("gray45", "gray10", "gray75")) 
+  scale_color_manual(values=c("#fdbe85", "#fd8d3c", "#d94701")) 
+
+for (i in 2:length(treats)){
+  p[[i]] <- ggplot(data=subset(femalestage.treats[[i]], Var2!="0"), aes(x=Var1, y=100*Freq, group=Var2, col=Var2)) + geom_line() + theme_bw(base_size = 12) + geom_point(size=2) + ylim(c(0,100)) + geom_vline(xintercept = 4.1, linetype="dashed", color = "gray50", size=.5) + geom_vline(xintercept = 6.1, linetype="solid", color = "gray50", size=.5)+ theme(axis.title.x=element_blank(), axis.title.y=element_blank(), legend.position = "none", plot.title = element_blank(), axis.text.y=element_blank(),axis.ticks.y=element_blank(),axis.text.x=element_blank(),axis.ticks.x=element_blank()) + #scale_color_manual(values=c("gray45", "gray10", "gray75")) 
+    scale_color_manual(values=c("#fdbe85", "#fd8d3c", "#d94701")) 
 }
 pdf(file = "results/femalestage-line-plots.pdf", width = 4.5, height = 8)
 do.call(grid.arrange, c(c(p[1], p[4], p[2], p[5], p[3]), list(ncol=1, nrow=5)))
 dev.off()
 
 pdf(file = "results/femalestage-line-plots-legend.pdf", width = 4.5, height = 2)
-ggplot(data=subset(femalestage.treats[[i]], Var2!="0"), aes(x=Var1, y=100*Freq, group=Var2, col=Var2)) + geom_line() + theme_bw(base_size = 12) + geom_point(size=2) + scale_color_manual(values=c("gray45", "gray10", "gray75"),name=element_blank(), labels = c("Early", "Advanced/Ripe", "Spawned")) + theme(axis.title.x=element_blank(), axis.title.y=element_blank(), legend.position = "bottom", axis.text.y = element_blank(), axis.ticks.y = element_blank(), legend.title=element_text(size=14), legend.text = element_text(size=14)) + guides(color = guide_legend(override.aes = list(size=6))) + scale_x_discrete(labels= c("Nov 30", "Dec 20", "Jan 4", "Jan 23", "Feb 9", "Feb 27", "Mar 13", "Mar 23"))
+ggplot(data=subset(femalestage.treats[[i]], Var2!="0"), aes(x=Var1, y=100*Freq, group=Var2, col=Var2)) + geom_line() + theme_bw(base_size = 12) + geom_point(size=2) + theme(axis.title.x=element_blank(), axis.title.y=element_blank(), legend.position = "bottom", axis.text.y = element_blank(), axis.ticks.y = element_blank(), legend.title=element_text(size=14), legend.text = element_text(size=14)) + guides(color = guide_legend(override.aes = list(size=6))) + scale_x_discrete(labels= c("Nov 30", "Dec 20", "Jan 4", "Jan 23", "Feb 9", "Feb 27", "Mar 13", "Mar 23")) + 
+  #scale_color_manual(values=c("gray45", "gray10", "gray75"),name=element_blank(), labels = c("Early", "Advanced/Ripe", "Spawned")) +
+  scale_color_manual(values=c("#fdbe85", "#fd8d3c", "#d94701"),name=element_blank(), labels = c("Early", "Advanced/Ripe", "Spawned"))
 dev.off()
 
 

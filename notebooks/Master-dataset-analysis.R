@@ -9,6 +9,13 @@ master <- merge(x=survival.collect,
                 y=average.all[,c("MaxFeret", "MinFeret", "Length", "Width", "Sample.number")], 
                 by="Sample.number")
   
+# Add larval length variance for each family 
+master <- merge(x=master, y=larvalsize %>%
+                  #mutate(sheet=as.factor(sheet)) %>%
+                  group_by(Sample.number) %>%
+                  summarise(length.cv = var(Length, na.rm=TRUE), 
+                            width.cv = var(Width, na.rm=TRUE)), by="Sample.number")
+
 # Test each factor separately 
 Anova(glm(cbind(Live.35.days, Dead.35.days) ~ Date.stocked, data=master, quasibinomial)) #sign.
 summary(glm(cbind(Live.35.days, Dead.35.days) ~ Date.stocked, data=master, quasibinomial)) #positive eatimate
@@ -119,16 +126,24 @@ pdf("results/total-larvae-released-points-both-trials.pdf", width=5, height = 5)
 ggplot(master.release, aes(x=TREAT, y=total.percap)) + geom_jitter(width=0.2, size=5, aes(color=TREAT, shape=trial)) + theme_bw() + labs(title="Total larvae released\nby treatment and exposure time", y=("Total released (per broodstock)")) + scale_color_manual(values=c('#0571b0','#92c5de','#ca0020','#f4a582'), name=element_blank(), labels = c("7°C+high-food", "7°C+low-food", "10°C+high-food", "10°C+low-food")) + theme(text = element_text(size = 12)) + theme(axis.title.x=element_blank(), axis.text.x=element_blank(),axis.ticks.x=element_blank()) + scale_y_continuous(labels=scales::comma,lim=c(30000,225000)) + scale_shape_manual(values=c(8,16), name="Days in treatment", labels=c("7-week", "12-week")) 
 dev.off()
 
-larval.length.release <- merge(x=survival.collect[,c("Sample.number", "Live.Larvae")], y=do.call(data.frame, aggregate(mm ~ Sample + TREAT + TEMP + FOOD, subset(new.length.ann, Length.Width=="length"), FUN = function(x) c(mean = mean(x), sd = sd(x), cv=100*sd(x)/mean(x)))), by.x="Sample.number", by.y="Sample")
+#larval.length.release <- merge(x=survival.collect[,c("Sample.number", "Live.Larvae")], y=do.call(data.frame, aggregate(mm ~ Sample + TREAT + TEMP + FOOD, subset(new.length.ann, Length.Width=="length"), FUN = function(x) c(mean = mean(x), sd = sd(x), cv=100*sd(x)/mean(x)))), by.x="Sample.number", by.y="Sample")
 
-ggplot(larval.length.release, aes(x=Live.Larvae, y=mm.cv)) +geom_jitter(width=0.2, size=5, aes(color=TREAT)) + theme_bw() + labs(title="CV (%) Larval length within sample ~ Total larvae released", y=("Larval length CV (in sample)"), x="# Larvae collected from spawning tank") + scale_color_manual(values=c('#0571b0','#92c5de','#ca0020','#f4a582'), name=element_blank(), labels = c("Cold / High Food", "Cold / Low Food", "Warm / High Food", "Warm / Low Food")) + theme(text = element_text(size = 12))
 
-ggplot(larval.length.release, aes(x=TREAT, y=mm.cv)) +geom_boxplot(aes(color=TREAT)) + theme_bw() + labs(title="CV (%) Larval length within sample", y=("Larval length CV (in sample)"), x=element_blank()) + scale_color_manual(values=c('#0571b0','#92c5de','#ca0020','#f4a582'), name=element_blank(), labels = c("Cold / High Food", "Cold / Low Food", "Warm / High Food", "Warm / Low Food")) + theme(text = element_text(size = 12))+ theme(axis.title.x=element_blank(), axis.text.x=element_blank(),axis.ticks.x=element_blank())
+ggplot(master, aes(x=Live.Larvae, y=length.cv)) +geom_jitter(width=0.2, size=5, aes(color=TREAT.x)) + theme_bw() + labs(title="Larval length variance within sample ~ Total larvae released", y=("Larval length variance (in sample)"), x="# Larvae collected from spawning tank") + scale_color_manual(values=c('#0571b0','#92c5de','#ca0020','#f4a582'), name=element_blank(), labels = c("Cold / High Food", "Cold / Low Food", "Warm / High Food", "Warm / Low Food")) + theme(text = element_text(size = 12))
+
+ggplot(master, aes(x=TREAT.x, y=length.cv)) +geom_boxplot(aes(color=TREAT.x)) + theme_bw() + labs(title="CV (%) Larval length within sample", y=("Larval length CV (in sample)"), x=element_blank()) + scale_color_manual(values=c('#0571b0','#92c5de','#ca0020','#f4a582'), name=element_blank(), labels = c("Cold / High Food", "Cold / Low Food", "Warm / High Food", "Warm / Low Food")) + theme(text = element_text(size = 12))+ theme(axis.title.x=element_blank(), axis.text.x=element_blank(),axis.ticks.x=element_blank())
+
+ggplot(master, aes(x=length.cv, y=100*(Live.35.days/800))) +geom_jitter(width=0.2, size=5, aes(color=TREAT.x)) + theme_bw() + labs(title="Larval survival ~ Variance in larval length within sample", y=("% Survival to post-settlement"), x="Larval length variance (in sample)") + scale_color_manual(values=c('#0571b0','#92c5de','#ca0020','#f4a582'), name=element_blank(), labels = c("Cold / High Food", "Cold / Low Food", "Warm / High Food", "Warm / Low Food")) + theme(text = element_text(size = 12))
 
 larval.width.release <- merge(x=survival.collect[,c("Sample.number", "Live.Larvae")], y=do.call(data.frame, aggregate(mm ~ Sample + TREAT + TEMP + FOOD, subset(new.length.ann, Length.Width=="width"), FUN = function(x) c(mean = mean(x), sd = sd(x), cv=100*sd(x)/mean(x)))), by.x="Sample.number", by.y="Sample")
 
-ggplot(larval.width.release, aes(x=Live.Larvae, y=mm.cv)) +geom_jitter(width=0.2, size=5, aes(color=TREAT)) + theme_bw() + labs(title="CV (%) Larval length within sample ~ Total larvae released", y=("Larval width CV (in sample)"), x="# Larvae collected from spawning tank") + scale_color_manual(values=c('#0571b0','#92c5de','#ca0020','#f4a582'), name=element_blank(), labels = c("Cold / High Food", "Cold / Low Food", "Warm / High Food", "Warm / Low Food")) + theme(text = element_text(size = 12)) 
+ggplot(master, aes(x=Live.Larvae, y=width.cv)) +geom_jitter(width=0.2, size=5, aes(color=TREAT.x)) + theme_bw() + labs(title="CV (%) Larval width within sample ~ Total larvae released", y=("Larval width CV (in sample)"), x="# Larvae collected from spawning tank") + scale_color_manual(values=c('#0571b0','#92c5de','#ca0020','#f4a582'), name=element_blank(), labels = c("Cold / High Food", "Cold / Low Food", "Warm / High Food", "Warm / Low Food")) + theme(text = element_text(size = 12)) 
 
+ggplot(master, aes(x=Live.Larvae, y=100*(Live.35.days/800))) +geom_jitter(width=0.2, size=5, aes(color=TREAT.x)) + theme_bw() + labs(title="% Survival by treatment and no. larvae released in group", y=("% Survival through metamorphosis"), x="No. larvae released") + scale_color_manual(values=c('#0571b0','#92c5de','#ca0020','#f4a582'), name=element_blank(), labels = c("Cold / High Food", "Cold / Low Food", "Warm / High Food", "Warm / Low Food")) + theme(text = element_text(size = 12)) 
+
+ggplot(master, aes(x=Date.stocked, y=100*(Live.35.days/800))) +geom_jitter(width=0.2, size=5, aes(color=TREAT.x)) + theme_bw() + labs(title="% Survival by treatment and date larvae were released", y=("% Survival through metamorphosis"), x="Date released") + scale_color_manual(values=c('#0571b0','#92c5de','#ca0020','#f4a582'), name=element_blank(), labels = c("Cold / High Food", "Cold / Low Food", "Warm / High Food", "Warm / Low Food")) + theme(text = element_text(size = 12)) 
+
+ggplot(master, aes(x=width.cv, y=100*(Live.35.days/800))) +geom_jitter(width=0.2, size=5, aes(color=TREAT.x)) + theme_bw() + labs(title="Larval survival ~ CV (%) Larval width within sample", y=("% Survival to post-settlement"), x="Larval wkidth CV (in sample)") + scale_color_manual(values=c('#0571b0','#92c5de','#ca0020','#f4a582'), name=element_blank(), labels = c("Cold / High Food", "Cold / Low Food", "Warm / High Food", "Warm / Low Food")) + theme(text = element_text(size = 12))
 
 # Broodstock mortality, both trials combined
 
@@ -142,7 +157,7 @@ brood.mortality.all$Alive <- as.numeric(brood.mortality.all$Alive)
 
 brood.mort.6 <-  ggplot(data=subset(brood.mortality.all, TREAT.trial=="6" & Alive!="NA"), aes(x=Date, y=100*Alive, group=TREAT, col=TREAT)) + 
   theme_bw(base_size = 11) + 
-  geom_line() + geom_point(shape=16) + 
+  geom_step() + geom_point(shape=16) + 
   ggtitle("Broodstock survival over time") + 
   scale_color_manual(values=c('#0571b0','#92c5de','#ca0020','#f4a582'), name=element_blank()) + 
   scale_x_date(date_breaks = "3 week",date_labels ="%b %d", limits = c(min(brood.mortality.all$Date), max(brood.mortality.all$Date))) +
@@ -152,7 +167,7 @@ brood.mort.6 <-  ggplot(data=subset(brood.mortality.all, TREAT.trial=="6" & Aliv
 
 brood.mort.13 <- ggplot(data=subset(brood.mortality.all, TREAT.trial=="13" & Alive!="NA"), aes(x=Date, y=100*Alive, group=TREAT, col=TREAT)) + 
   theme_bw(base_size = 12) + 
-  geom_line() + geom_point(shape=16) + xlab("Date") + ylab("% survival") + 
+  geom_step() + geom_point(shape=16) + xlab("Date") + ylab("% survival") + 
   scale_color_manual(values=c('#0571b0','#92c5de','#ca0020','#f4a582'), name=element_blank()) + 
   scale_x_date(date_breaks = "3 week",date_labels ="%b %d", limits = c(min(brood.mortality.all$Date), max(brood.mortality.all$Date))) +
   scale_y_continuous(limits=c(50, 100)) +

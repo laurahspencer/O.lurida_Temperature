@@ -9,3 +9,4 @@ lapply(list.of.packages, FUN = function(X) {
 
 sessionInfo()
 
+
