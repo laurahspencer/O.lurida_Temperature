@@ -5,6 +5,9 @@
 #master <- merge(x=size.surv, y=survival.collect, by.x="Sample", by.y="Sample.number") #merge 
 
 #merge survival & collection data (survival.collect) with larval size data (average.all)
+# survival.collect object created in the "Survival" script 
+# average.all created in the "Larvae-length.Rmd" file
+
 master <- merge(x=survival.collect, 
                 y=average.all[,c("MaxFeret", "MinFeret", "Length", "Width", "Sample.number")], 
                 by="Sample.number")

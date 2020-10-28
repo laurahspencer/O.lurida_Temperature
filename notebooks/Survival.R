@@ -46,19 +46,44 @@ dev.off()
 
 pdf(file="results/jitter-survival.pdf", width =7, height = 4.75)
 ggplot(survival, aes(x=TREAT, y=100*Live.35.days/(800))) + 
-  geom_violin(aes(color=TREAT)) + 
-  geom_jitter(width=0.35, size=2.5, aes(color=TREAT)) + 
-  theme_bw(base_size = 14) + 
+  geom_boxplot(aes(color=TREAT)) + 
+  geom_jitter(width=0.35, size=2, aes(color=TREAT)) + 
+  theme_bw(base_size = 12) + 
   labs(title="% survival, by parental treatment", y=("% survival"), x="Treatment replicate") + 
-  scale_color_manual(values=c('#0571b0','#92c5de','#ca0020','#f4a582'), name=element_blank(), labels = c("Cold / High Food", "Cold / Low Food", "Warm / High Food", "Warm / Low Food")) + theme(text = element_text(size = 16)) + 
+  scale_color_manual(values=c('#0571b0','#92c5de','#ca0020','#f4a582'), name=element_blank(), labels = c("Cold+\nHigh Food", "Cold+\nLow Food", "Warm+\nHigh Food", "Warm+\nLow Food")) + theme(text = element_text(size = 12)) + 
   theme(axis.title.x=element_blank(), axis.text.x=element_blank(),axis.ticks.x=element_blank())
 dev.off()
 
+
+# Plot for PCSGA presentation 
+survival %>% 
+  mutate(FOOD = factor(FOOD, levels=c("Low", "High"))) %>% 
+ggplot(aes(x=TEMP:FOOD, y=100*Live.35.days/(800))) + 
+  geom_boxplot(aes(color=TEMP:FOOD), outlier.shape = NA) + 
+  geom_jitter(width=0.35, size=1.5, aes(color=TEMP:FOOD)) + 
+  theme_bw(base_size = 12) + 
+  labs(title="% survival to post-set\nby parental treatment", y=("% survival"), x="Treatment replicate") + 
+  scale_color_manual(values=c('darkslateblue','#0571b0','chocolate2','#ca0020'), name=element_blank()) +  
+  theme(text = element_text(size = 12),
+        axis.title.x=element_blank(), 
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        legend.position = "none") +
+  ylim(c(-5, 56))
 
 100*survival$Live.35.days/800
 
 Survival.family.35 <- do.call(data.frame, aggregate(Live.35.days ~ Family+TEMP+FOOD+TRT.REP+TREAT, data = survival, FUN = function(x) c(mean = mean(x)/(800)*100, sd = sd(x)/(800)*100)))
 names(Survival.family.35) <- c("Family", "TEMP", "FOOD", "TRT.REP", "TREAT", "Mean.Live.35", "SD.Live.35")
+
+# Plot one point showing average survival of each group 
+ggplot(Survival.family.35, aes(x=TREAT, y=Mean.Live.35)) + 
+  geom_boxplot(aes(color=TREAT), outlier.shape = NA) + 
+  geom_jitter(width=0.35, size=2, aes(color=TREAT)) + 
+  theme_bw(base_size = 12) + 
+  labs(title="Mean % survival, by parental treatment", y=("% survival"), x="Treatment") + 
+  scale_color_manual(values=c('#0571b0','#92c5de','#ca0020','#f4a582'), name=element_blank(), labels = c("Cold+\nHigh Food", "Cold+\nLow Food", "Warm+\nHigh Food", "Warm+\nLow Food")) + theme(text = element_text(size = 12)) + 
+  theme(axis.title.x=element_blank(), axis.text.x=element_blank(),axis.ticks.x=element_blank())
 
 mean(Survival.family.35$SD.Live.35/Survival.family.35$Mean.Live.35) #CV within families
 plot(x=Survival.family.35$Mean.Live.35, y=Survival.family.35$SD.Live.35)
@@ -220,15 +245,37 @@ master %>% dplyr::select(Length, Live.35.days, TREAT.x) %>%
   filter(!is.na(TREAT.x), !is.na(Length)) %>% 
   mutate(TREAT.x = factor(TREAT.x, levels=c("Cold - High", "Cold - Low", "Warm - High", "Warm - Low"))) %>%
 ggplot(aes(x=Length, y=100*Live.35.days/(800))) + 
-  geom_point(size=2.5, aes(color=TREAT.x)) + 
+  geom_point(size=2, aes(color=TREAT.x)) + 
   labs(title="Larval survival ~ shell width upon release", 
        y=("% Survival"), 
        x="Shell Width (µm)") + 
-  theme_bw(base_size = 14) + 
+  theme_bw(base_size = 12) + 
   scale_color_manual(values=c('#0571b0','#92c5de','#ca0020','#f4a582'),
       name=element_blank(), 
-      labels = c("Cold / High Food", "Cold / Low Food", "Warm / High Food", "Warm / Low Food"))
+      labels = c("Cold / High Food", "Cold / Low Food", "Warm / High Food", "Warm / Low Food")) + theme(legend.position = "none")
 dev.off()
+
+# For PCSGA presentation 
+
+master %>% dplyr::select(Length, Live.35.days, TREAT.x) %>% 
+  filter(!is.na(TREAT.x), !is.na(Length)) %>% 
+  ggplot(aes(x=Length, y=100*Live.35.days/(800))) + 
+  geom_point(size=2, color="gray40") + 
+  labs(title="Larval survival ~ shell length upon release", 
+       y=("% Survival"), 
+       x="Shell Length (µm)") + 
+  theme_bw(base_size = 12) + theme(legend.position = "none") +
+  geom_smooth(method='lm', color="gray50")
+
+# Test correlation and find R2 of lm  
+test <- master %>% dplyr::select(Length, Live.35.days, TREAT.x) %>% 
+  filter(!is.na(TREAT.x), !is.na(Length)) 
+cor.test(x=test$Length, y=test$Live.35.days)
+hist(test$Live.35.days^.25)
+shapiro.test(test$Live.35.days^.25)
+summary(lm(Live.35.days^.25 ~ Length, data=test))
+
+### ------
 
 png(filename = "results/larval-shell-width-survival.png", width = 600, height = 325)
 ggplot(master, aes(x=Width, y=100*Live.35.days/(800))) + geom_point(size=2.5, aes(color=TREAT.x)) + labs(title="Larval survival ~ shell height upon release", y=("% survival"), x="Shell height (µm)", size=14) + theme_bw(base_size = 14) + scale_color_manual(values=c('#0571b0','#92c5de','#ca0020','#f4a582'), name=element_blank(), labels = c("Cold / High Food", "Cold / Low Food", "Warm / High Food", "Warm / Low Food"))
