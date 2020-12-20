@@ -53,15 +53,20 @@ hist((na.omit(subset(Collection, Live.Larvae>0)$Live.Larvae))^(1/3))
 qqnorm(na.omit(subset(Collection, Live.Larvae>0)$Live.Larvae)^(1/3))
 qqline(na.omit(subset(Collection, Live.Larvae>0)$Live.Larvae)^(1/3))
 shapiro.test(na.omit(subset(Collection, Live.Larvae>0)$Live.Larvae)^(1/3))  #hmmmm 
+bartlett.test(Live.Larvae ~ TREAT, data=na.omit(subset(Collection, Live.Larvae>0))) #variance OK
 leveneTest(na.omit(subset(Collection, Live.Larvae>0)$Live.Larvae)^(1/3), group=subset(Collection, Live.Larvae>0)$TREAT) #variance OK 
 anova(lm(I(Live.Larvae^(1/3)) ~ TEMP*FOOD, data=subset(Collection, Live.Larvae>0))) #no effect
 
 # Total release normalized by broodstock 
+hist(treat_total.rep$total.percap)
 shapiro.test(treat_total.rep$total.percap)
-leveneTest(treat_total.rep$total.percap, group=treat_total.rep$TREAT)
+bartlett.test(total.percap ~ TREAT, data=treat_total.rep) #variances differ 
+leveneTest(treat_total.rep$total.percap, group=treat_total.rep$TREAT) #borderline 
 anova(lm(total.percap ~ TEMP*FOOD, data=treat_total.rep)) #no diff in total released per brood 
 kruskal.test(total.percap ~ TREAT, data=treat_total.rep) #no diff in total released per brood (trying non-parametric)
 
+?bartlett.test
+?leveneTest
 # Total release not normalized
 shapiro.test(treat_total.rep$overall_Total)
 leveneTest(treat_total.rep$overall_Total, group=treat_total.rep$TREAT)
@@ -120,11 +125,16 @@ Collection.cumul <- aggregate(cbind(Live.Larvae, Live.Larvae.norm) ~ Date + TREA
   mutate(cum.total=cumsum(Live.Larvae),cum.percap = cumsum(Live.Larvae.norm),CalDay = format(Date,"%j")) %>% 
   arrange(Date) %>% dplyr::select(Date,CalDay,TREAT,TEMP,FOOD,Live.Larvae,Live.Larvae.norm, cum.total,cum.percap)
 
-TREATS <- levels(Collection.cumul$TREAT)
-TREATS.col <- c("#0571b0", "#92c5de", "#ca0020", "#f4a582")
+# Relevel food factors such that Low comes before High
+Collection.cumul$FOOD <- factor(Collection.cumul$FOOD, levels = rev(levels(Collection.cumul$FOOD)))
+
+TREATS <- levels(Collection.cumul$FOOD:Collection.cumul$TEMP)
+TREATS.col <- c("#92c5de","#f4a582","#0571b0","#ca0020")
+
 p <- list()
-p[[1]] <- ggplot(data=Collection.cumul, aes(x=Date, y=cum.percap, group=TREAT, color=TREAT)) + 
-    geom_line(size=.75) + scale_color_manual(values=c('#0571b0','#92c5de','#ca0020','#f4a582'), name=element_blank(), labels = c("Cold / High Food", "Cold / Low Food", "Warm / High Food", "Warm / Low Food")) + 
+p[[1]] <- ggplot(data=Collection.cumul, aes(x=Date, y=cum.percap, group=FOOD:TEMP, color=FOOD:TEMP)) + 
+    geom_line(size=.75) + 
+  scale_color_manual(values=TREATS.col, name=element_blank()) + 
     theme_classic(base_size = 14) + 
     #ggtitle("Cumulative larvae released (normalized by no. broodstock)\n13-week exposure") + 
     scale_x_date(date_breaks = "1 week",date_labels ="%b-%d", 
@@ -135,7 +145,7 @@ p[[1]] <- ggplot(data=Collection.cumul, aes(x=Date, y=cum.percap, group=TREAT, c
   scale_y_continuous(limits = c(0, 600000), position = "right") 
 
 for (i in 1:length(TREATS)) {
-  p[[i+1]] <- ggplot(data=subset(Collection.cumul, TREAT==TREATS[i]), aes(x=Date, y=Live.Larvae, fill=TREAT)) + geom_bar(fill=TREATS.col[i], stat="identity",width=.5, position = position_dodge(width=2)) + 
+  p[[i+1]] <- ggplot(data=subset(Collection.cumul, FOOD:TEMP==TREATS[i]), aes(x=Date, y=Live.Larvae, fill=FOOD:TEMP)) + geom_bar(fill=TREATS.col[i], stat="identity",width=.5, position = position_dodge(width=2)) + 
     theme_classic(base_size = 14) +  
     theme(plot.title = element_text(size = 14, hjust = 0), axis.title.y = element_blank(), 
           axis.title.x = element_blank(),  axis.title = element_blank(),
@@ -145,15 +155,11 @@ for (i in 1:length(TREATS)) {
                  limits=c(as.Date("2018-03-30"), as.Date("2018-04-27"))) + 
     scale_y_continuous(labels = scales::scientific, 
                        limits = c(0,5780000), breaks=c(2500000, 5000000), position = "right") +
-    geom_smooth(color="gray60", size=0.6, linetype="dashed", span = 0.25, method.args = list(degree=1), se = FALSE)
+    geom_smooth(method="loess", color="gray60", size=0.6, linetype="dashed", span = 0.25, method.args = list(degree=1), se = FALSE)
 }
 pdf(file = "results/13wk-larvae.pdf", width = 5, height = 8)
 plot_grid(p[[1]], p[[2]], p[[3]], p[[4]], p[[5]], align = "v", nrow = 5, rel_heights = c(2/6, 1/6, 1/6, 1/6, 1/6))
 dev.off()
-
-
-
-
 
 
 

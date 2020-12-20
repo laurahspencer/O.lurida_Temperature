@@ -19,20 +19,19 @@ master <- merge(x=master, y=larvalsize %>%
                   summarise(length.cv = var(Length, na.rm=TRUE), 
                             width.cv = var(Width, na.rm=TRUE)), by="Sample.number")
 
+
 # Test each factor separately 
 Anova(glm(cbind(Live.35.days, Dead.35.days) ~ Date.stocked, data=master, quasibinomial)) #sign.
 summary(glm(cbind(Live.35.days, Dead.35.days) ~ Date.stocked, data=master, quasibinomial)) #positive eatimate
 Anova(glm(cbind(Live.35.days, Dead.35.days) ~ Live.Larvae, data=master, quasibinomial)) #tended to be sign.
 summary(glm(cbind(Live.35.days, Dead.35.days) ~ Live.Larvae, data=master, quasibinomial)) #positive eatimate
-
+Anova(glm(cbind(Live.35.days, Dead.35.days) ~ FOOD*TEMP, data=master, quasibinomial)) #not
 Anova(glm(cbind(Live.35.days, Dead.35.days) ~ Length, data=master, quasibinomial)) #not
 Anova(glm(cbind(Live.35.days, Dead.35.days) ~ Width, data=master, quasibinomial)) #not
 Anova(glm(cbind(Live.35.days, Dead.35.days) ~ I(Length*Width), data=master, quasibinomial)) #not 
-Anova(glm(cbind(Live.35.days, Dead.35.days) ~ TEMP, data=master, quasibinomial)) #not
-Anova(glm(cbind(Live.35.days, Dead.35.days) ~ FOOD, data=master, quasibinomial)) #not
 
-# Test ALL factors in one model, no interaction
-Anova(glm.all <- glm(cbind(Live.35.days, Dead.35.days) ~ Live.Larvae + Length + Width + Date.stocked + TEMP + FOOD, data=master, quasibinomial))
+# Test ALL factors in one model
+Anova(glm.all <- glm(cbind(Live.35.days, Dead.35.days) ~ Live.Larvae + Length + Width + Date.stocked + TEMP + FOOD + TEMP:FOOD, data=master, quasibinomial))
 
 # Date stocked against treatments 
 Anova(glm.all <- glm(cbind(Live.35.days, Dead.35.days) ~ Date.stocked*TEMP + Date.stocked*FOOD, data=master, quasibinomial))
@@ -43,7 +42,9 @@ summary(glm.all <- glm(cbind(Live.35.days, Dead.35.days) ~ as.numeric(Date.stock
 
 ggplot(master, aes(x=1000*Length, y=100*Live.35.days/(800))) + geom_point(size=3.5, aes(color=TREAT.x)) + labs(title="% survival ~ shell length upon release", y=("% survival"), x="length upon release") + scale_color_manual(values=c("skyblue3", "seagreen3", "indianred2",  "orange1")) + theme(text = element_text(size = 16))
 
-ggplot(master, aes(x=1000*Width, y=100*Live.35.days/(800))) + geom_point(size=3.5, aes(color=TREAT.x)) + labs(title="% survival ~ shell width upon release", y=("% survival"), x="width upon release") + scale_color_manual(values=c("skyblue3", "seagreen3", "indianred2",  "orange1")) + theme(text = element_text(size = 16))
+ggplot(master, aes(x=Date.stocked, y=100*Live.35.days/(800))) + geom_point(size=3.5, aes(color=TREAT.x)) + labs(title="% survival ~ date stocked", y=("% survival"), x="length upon release") + scale_color_manual(values=c("skyblue3", "seagreen3", "indianred2",  "orange1")) + theme(text = element_text(size = 16))
+
+ggplotly(ggplot(master, aes(x=1000*Width, y=100*Live.35.days/(800))) + geom_point(size=3.5, aes(color=TREAT.x)) + labs(title="% survival ~ shell width upon release", y=("% survival"), x="width upon release") + scale_color_manual(values=c("skyblue3", "seagreen3", "indianred2",  "orange1")) + theme(text = element_text(size = 16)))
 
 ggplot(master, aes(x=TREAT.x, y=Length)) + geom_boxplot(aes(fill=TREAT.x)) + labs(title="shell length ~ treatment", y=("shell length"), x="treatment") + scale_fill_manual(values=c("skyblue3", "seagreen3", "indianred2",  "orange1")) + theme(text = element_text(size = 16)) + theme(axis.title.x=element_blank(), axis.text.x=element_blank(),axis.ticks.x=element_blank())
 
@@ -59,74 +60,66 @@ treat_total.rep[17:18] <- data.frame(treat_total.rep[c("maxday", "first.big")],
            lapply(treat_total.rep[c("maxday", "first.big")], function(x) x - min(treat_total.rep$first.big)))[3:4]
 
 colnames(treat_total.rep) <- colnames(treat_total.6wks.rep)
-master.release <- rbind(treat_total.rep, treat_total.6wks.rep)
-master.release$trial <- as.factor(master.release$trial)
+subset(master.release, trial==13) <- rbind(treat_total.rep, treat_total.6wks.rep)
+subset(master.release, trial==13)$trial <- as.factor(subset(master.release, trial==13)$trial)
 
-plot(x=master.release$trial, y=master.release$mean.larvae)
-plot(x=master.release$trial, y=master.release$total.percap)
-plot(x=master.release$trial, y=master.release$maxday.1)
-plot(x=master.release$trial, y=master.release$perc.spawn)
-plot(y=master.release$maxday.1, x=master.release$first.big.1,col=master.release$TREAT)
-plot(x=master.release$release.days, y=master.release$total.percap,col=master.release$TREAT)
+plot(x=subset(master.release, trial==13)$trial, y=subset(master.release, trial==13)$mean.larvae)
+plot(x=subset(master.release, trial==13)$trial, y=subset(master.release, trial==13)$total.percap)
+plot(x=subset(master.release, trial==13)$trial, y=subset(master.release, trial==13)$maxday.1)
+plot(x=subset(master.release, trial==13)$trial, y=subset(master.release, trial==13)$perc.spawn)
+plot(y=subset(master.release, trial==13)$maxday.1, x=subset(master.release, trial==13)$first.big.1,col=subset(master.release, trial==13)$TREAT)
+plot(x=subset(master.release, trial==13)$release.days, y=subset(master.release, trial==13)$total.percap,col=subset(master.release, trial==13)$TREAT)
 
-# Total release norm. differ by treatment & trial? 
-shapiro.test(master.release$total.percap)
-summary(aov(total.percap ~ trial*Temperature*Food, data=master.release)) #test trial + treats
-aggregate(total.percap ~ trial, data=master.release, mean)
-aggregate(total.percap ~ trial, data=master.release, sd)
-164025.23/92243.35
+# IMPORTANT  
+# Decision 10/28/2020 - don't include any data from the 6 week trial in the manuscript. Remove all 6 week data, and omit that factor ("trial") from stats 
 
-# Total release (not norm.) differ by treatment & trial? 
-shapiro.test(master.release$overall_Total^(1/2))
-summary(aov(overall_Total^(1/2) ~ trial*Temperature*Food, data=master.release))
-
-# Mean daily larvae released differ by treatment & trial?
-shapiro.test(master.release$mean.larvae)
-summary(aov(mean.larvae ~ trial*Temperature*Food, data=master.release))
+# Date of onset differ? 
+shapiro.test(subset(master.release, trial==13)$first.big.1) #can't make normal
+hist(subset(master.release, trial==13)$first.big.1)
+kruskal.test(first.big.1 ~ TREAT, data=subset(master.release, trial==13))
+kruskal.test(first.big.1 ~ Temperature, data=subset(master.release, trial==13))
+kruskal.test(first.big.1 ~ Food, data=subset(master.release, trial==13)) #YES 
+plot(first.big.1 ~ Food, data=subset(master.release, trial==13)) # BIG difference 
+aggregate(first.big ~ Food, data=subset(master.release, trial==13), mean) # low food went 4 days earlier on ave.
 
 # Date of max release (after onset) difer by trial? 
-shapiro.test(master.release$maxday.1^(1/3))
-summary(aov(maxday.1^(1/3) ~ trial*Temperature*Food, data=master.release))
-TukeyHSD(aov(maxday.1^(1/3) ~ trial*Temperature*Food, data=master.release))
-plot(x=master.release$trial, y=master.release$maxday.1)
-plot(maxday.1~temp_food_trial, data=mutate(master.release, temp_food_trial=as.factor(paste(Temperature, Food, trial, sep="_"))), main="Peak release ~ Temp:Food:Trial")
+shapiro.test(subset(master.release, trial==13)$maxday.1^(1/3))
+summary(aov(maxday.1^(1/3) ~ Temperature*Food, data=subset(master.release, trial==13))) # YES
+TukeyHSD(aov(maxday.1^(1/3) ~ Temperature*Food, data=subset(master.release, trial==13)))
+plot(maxday.1~temp_food_trial, data=mutate(subset(master.release, trial==13), temp_food_trial=as.factor(paste(Temperature, Food, trial, sep="_"))), main="Peak release ~ Temp:Food:Trial")
 
+aggregate(maxday.1 ~ Temperature*Food, data=subset(master.release, trial==13), mean)
+aggregate(maxday.1 ~ Temperature*Food, data=subset(master.release, trial==13), sd)
 
-aggregate(maxday.1 ~ trial, data=master.release, mean)
-aggregate(maxday.1 ~ trial, data=master.release, sd)
+# Mean daily larvae released differ by treatment & trial?
+shapiro.test(subset(master.release, trial==13)$mean.larvae)
+test <- summary(aov(mean.larvae ~ Temperature*Food, data=subset(master.release, trial==13)))
 
-# Date of onset differ by trial? 
-shapiro.test(master.release$first.big.1) #can't make normal
-hist(master.release$first.big.1)
-kruskal.test(first.big.1 ~ trial, data=master.release)
-kruskal.test(first.big.1 ~ Temperature, data=master.release)
-kruskal.test(first.big.1 ~ Food, data=master.release)
-plot(first.big.1 ~ Food, data=master.release)
-aggregate(first.big ~ Food, data=master.release, mean)
-72.85714-74.92857
-kruskal.test(first.big.1 ~ TREAT, data=master.release)
-kruskal.test(first.big.1 ~ temp_trial, data=mutate(master.release, temp_trial=as.factor(paste(Temperature, trial, sep="_"))))
-kruskal.test(first.big.1 ~ food_trial, data=mutate(master.release, food_trial=as.factor(paste(Food, trial, sep="_"))))
+test[[1]]["F value"] #to extract F value
+test[[1]]["Pr(>F)"]
 
-# Plot to assess pairwise differences 
-plot(first.big.1~food_trial, data=mutate(master.release, food_trial=as.factor(paste(Food, trial, sep="_"))), main="Release onset ~ Food:Trial")
-aggregate(first.big.1 ~ food_trial, data=mutate(master.release, food_trial=as.factor(paste(Food, trial, sep="_"))), sd)
-4.375-0.625
+# Total release norm. differ by treatment? 
+shapiro.test(subset(master.release, trial==13)$total.percap)
+summary(aov(total.percap ~ Temperature*Food, data=subset(master.release, trial==13))) 
+aggregate(total.percap ~ Temperature*Food, data=subset(master.release, trial==13), mean)
+aggregate(total.percap ~ Temperature*Food, data=subset(master.release, trial==13), sd)
 
-kruskal.test(first.big.1 ~ temp_food_trial, data=mutate(master.release, temp_food_trial=as.factor(paste(Temperature, Food, trial, sep="_"))))
-plot(first.big.1~temp_food_trial, data=mutate(master.release, temp_food_trial=as.factor(paste(Temperature, Food, trial, sep="_"))), main="Release onset ~ Temp:Food:Trial")
+# Total release (not norm.) differ by treatment & trial? 
+shapiro.test(subset(master.release, trial==13)$overall_Total^(1/2))
+summary(aov(overall_Total^(1/2) ~ Temperature*Food, data=subset(master.release, trial==13)))
 
+master.release$Food <- factor(master.release$Food, levels = rev(levels(master.release$Food)))
 
-# Perc. spawn as female differ by trial? 
-shapiro.test(master.release$perc.spawn)
-hist(master.release$perc.spawn)
-summary(aov(perc.spawn ~ trial*Temperature*Food, data=master.release))
-plot(x=master.release$trial, y=master.release$perc.spawn)
-
-master.release$trial <- factor(master.release$trial, levels = rev(levels(master.release$trial)))
-
-pdf("results/total-larvae-released-points-both-trials.pdf", width=5, height = 5)
-ggplot(master.release, aes(x=TREAT, y=total.percap)) + geom_jitter(width=0.2, size=5, aes(color=TREAT, shape=trial)) + theme_bw() + labs(title="Total larvae released\nby treatment and exposure time", y=("Total released (per broodstock)")) + scale_color_manual(values=c('#0571b0','#92c5de','#ca0020','#f4a582'), name=element_blank(), labels = c("7°C+high-food", "7°C+low-food", "10°C+high-food", "10°C+low-food")) + theme(text = element_text(size = 12)) + theme(axis.title.x=element_blank(), axis.text.x=element_blank(),axis.ticks.x=element_blank()) + scale_y_continuous(labels=scales::comma,lim=c(30000,225000)) + scale_shape_manual(values=c(8,16), name="Days in treatment", labels=c("7-week", "12-week")) 
+pdf("results/total-larvae-released-points.pdf", width=5, height = 5)
+ggplot(subset(master.release, trial==13), aes(x=Food:Temperature, y=total.percap)) + 
+  geom_jitter(width=0.2, size=4, shape=21, aes(color=Food:Temperature), stroke=1.5) + 
+  theme_bw() + 
+  labs(title="Total larvae released", y=("Total released (per adult)")) + 
+  scale_color_manual(values=c('#92c5de','#f4a582','#0571b0','#ca0020'), name=element_blank(), labels = c("7°C+Low-food","10°C+Low-food", "7°C+High-food", "10°C+High-food")) +
+  theme(text = element_text(size = 12, color="gray25")) + 
+  theme(axis.title.x=element_blank(), axis.text.x=element_blank(),axis.ticks.x=element_blank()) + 
+  scale_y_continuous(labels=scales::comma,lim=c(30000,170000)) + 
+  scale_shape_manual(values=c(8,16), name="Days in treatment", labels=c("7-week", "12-week")) 
 dev.off()
 
 #larval.length.release <- merge(x=survival.collect[,c("Sample.number", "Live.Larvae")], y=do.call(data.frame, aggregate(mm ~ Sample + TREAT + TEMP + FOOD, subset(new.length.ann, Length.Width=="length"), FUN = function(x) c(mean = mean(x), sd = sd(x), cv=100*sd(x)/mean(x)))), by.x="Sample.number", by.y="Sample")
@@ -181,3 +174,7 @@ pdf(file = "results/broodstock-survival.pdf", width = 6, height = 5)
 grid.arrange(brood.mort.6, brood.mort.13)
 dev.off()
 
+# 
+pdf(file = "results/broodstock-survival.pdf", width = 6, height = 2.5)
+brood.mort.13
+dev.off()

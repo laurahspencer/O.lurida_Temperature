@@ -74,120 +74,49 @@ CT.D.fem.stage <- table(subset(histo, TREAT=="D" | TREAT=="PRE")$Week, subset(hi
 
 # Significance testing between treatments 
 
-# All treatment weeks prior to reproductive conditioning combined (3-13):
+# USED IN PAPER 
+# All treatment weeks prior to reproductive conditioning combined (3-12):
 
 print(sex.all <- table(subset(histo, Week!="0" & Week!="15" & Week!="16")$TREAT, subset(histo, Week!="0" & Week!="15" & Week!="16")$SEX))
-chisq.test(sex.all[-1,], simulate.p.value = T, B = 10000)  #no sign. diff
+chisq.test(sex.all[2:5,], simulate.p.value = T, B = 10000)  #no sign. diff
 
 # Collapsed sex designations (HPF = F, etc.)
 print(sex.all.col <- table(subset(histo, Week!="0" & Week!="15" & Week!="16")$TREAT, subset(histo, Week!="0" & Week!="15" & Week!="16")$SEX.COL))
-chisq.test(sex.all.col[-1,-1], simulate.p.value = T, B = 10000)  #no sign. diff
+chisq.test(sex.all.col[2:5,-1], simulate.p.value = T, B = 10000)  #no sign. diff
 
 # Male gonad stage 
 print(malstage.all <- table(subset(histo, Week!="0" & Week!="15" & Week!="16")$TREAT, subset(histo, Week!="0" & Week!="15" & Week!="16")$MALSTAGE.COL))
-chisq.test(malstage.all[-1,], simulate.p.value = T, B = 10000)  #different, p=0.0118. How?
+chisq.test(malstage.all[2:5,], simulate.p.value = T, B = 10000)  #different, p=0.009899 How?
 
 # Female gonad stage 
 print(femalstage.all <- table(subset(histo, Week!="0" & Week!="15" & Week!="16")$TREAT, subset(histo, Week!="0" & Week!="15" & Week!="16")$FEMSTAGE.COL))
-chisq.test(femalstage.all[-1,], simulate.p.value = T, B = 10000)  #no sign. diff
+chisq.test(femalstage.all[2:5,], simulate.p.value = T, B = 10000)  #no sign. diff
 
 
-# Week 3 
-
-print(sex.wk3 <- table(subset(histo, Week=="3")$TREAT, subset(histo, Week=="3")$SEX))
-chisq.test(sex.wk3[-1,-1], simulate.p.value = T, B = 10000)  #no sign. diff
-
-# Collapsed sex designations (HPF = F, etc.)
-print(sex.wk3.col <- table(subset(histo, Week=="3")$TREAT, subset(histo, Week=="3")$SEX.COL))
-fisher.test(sex.wk3.col[-1,-1], simulate.p.value = T, B = 10000)  #no sign. diff
-
-# Male gonad stage 
-print(malstage.wk3 <- table(subset(histo, Week=="3")$TREAT, subset(histo, Week=="3")$MALSTAGE.COL))
-chisq.test(malstage.wk3[-1,], simulate.p.value = T, B = 10000)  #no sign. diff
-
-# Female gonad stage 
-print(femalstage.wk3 <- table(subset(histo, Week=="3")$TREAT, subset(histo, Week=="3")$FEMSTAGE.COL))
-chisq.test(femalstage.wk3[-1,], simulate.p.value = T, B = 10000)  #no sign. diff
-
-
-# Week 5 
-
-print(sex.wk5 <- table(subset(histo, Week=="5")$TREAT, subset(histo, Week=="5")$SEX))
-chisq.test(sex.wk5[-1,-1], simulate.p.value = T, B = 10000)  #no sign. diff
-
-# Collapsed sex designations (HPF = F, etc.)
-print(sex.wk5.col <- table(subset(histo, Week=="5")$TREAT, subset(histo, Week=="5")$SEX.COL))
-fisher.test(sex.wk5.col[-1,-1], simulate.p.value = T, B = 10000)  #no sign. diff
-
-# Male gonad stage 
-print(malstage.wk5 <- table(subset(histo, Week=="5")$TREAT, subset(histo, Week=="5")$MALSTAGE.COL))
-chisq.test(malstage.wk5[-1,], simulate.p.value = T, B = 10000)  #no sign. diff
-
-# Female gonad stage 
-print(femalstage.wk5 <- table(subset(histo, Week=="5")$TREAT, subset(histo, Week=="5")$FEMSTAGE.COL))
-fisher.test(femalstage.wk5[-1,], simulate.p.value = T, B = 10000)  #no sign. diff
-
-
-# Week 8 
-
-print(sex.wk8 <- table(subset(histo, Week=="8")$TREAT, subset(histo, Week=="8")$SEX))
-chisq.test(sex.wk8[-1,-1], simulate.p.value = T, B = 10000)  #no sign. diff
-
-# Collapsed sex designations (HPF = F, etc.)
-print(sex.wk8.col <- table(subset(histo, Week=="8")$TREAT, subset(histo, Week=="8")$SEX.COL))
-fisher.test(sex.wk8.col[-1,-1], simulate.p.value = T, B = 10000)  #no sign. diff
-
-# Male gonad stage 
-print(malstage.wk8 <- table(subset(histo, Week=="8")$TREAT, subset(histo, Week=="8")$MALSTAGE.COL))
-chisq.test(malstage.wk8[-1,], simulate.p.value = T, B = 10000)  #no sign. diff
-
-# Female gonad stage 
-print(femalstage.wk8 <- table(subset(histo, Week=="8")$TREAT, subset(histo, Week=="8")$FEMSTAGE.COL))
-chisq.test(femalstage.wk8[-1,], simulate.p.value = T, B = 10000)  #no sign. diff
-
-
-# Week 10 
-
-print(sex.wk10 <- table(subset(histo, Week=="10")$TREAT, subset(histo, Week=="10")$SEX))
-chisq.test(sex.wk10[-1,], simulate.p.value = T, B = 10000)  #no sign. diff
-
-# Collapsed sex designations (HPF = F, etc.)
-print(sex.wk10.col <- table(subset(histo, Week=="10")$TREAT, subset(histo, Week=="10")$SEX.COL))
-chisq.test(sex.wk10.col[-1,-1], simulate.p.value = T, B = 10000)  #no sign. diff
-
-# Male gonad stage 
-print(malstage.wk10 <- table(subset(histo, Week=="10")$TREAT, subset(histo, Week=="10")$MALSTAGE.COL))
-chisq.test(malstage.wk10[-1,], simulate.p.value = T, B = 10000)  #no sign. diff
-
-# Female gonad stage 
-print(femalstage.wk10 <- table(subset(histo, Week=="10")$TREAT, subset(histo, Week=="10")$FEMSTAGE.COL))
-fisher.test(femalstage.wk10[-1,], simulate.p.value = T, B = 10000)  #no sign. diff
-
-
-
-# Week 13 (end of treatment)
+# USED IN PAPER 
+# Week 12 (end of treatment)
 
 print(sex.wk13 <- table(subset(histo, Week=="13")$TREAT, subset(histo, Week=="13")$SEX))
-chisq.test(sex.wk13[-1,], simulate.p.value = T, B = 10000)  #can't use chi-sq
-fisher.test(sex.wk13[-1,], simulate.p.value = T, B = 10000)  #no sign. diff
+chisq.test(sex.wk13[2:5,], simulate.p.value = T, B = 10000)  #can't use chi-sq
+fisher.test(sex.wk13[2:5,], simulate.p.value = T, B = 10000)  #no sign. diff
 
 # Collapsed sex designations (HPF = F, etc.)
 print(sex.wk13.col <- table(subset(histo, Week=="13")$TREAT, subset(histo, Week=="13")$SEX.COL))
-chisq.test(sex.wk13.col[-1,-1], simulate.p.value = T, B = 10000)  #no sign. diff
+chisq.test(sex.wk13.col[2:5,-1], simulate.p.value = T, B = 10000)  #no sign. diff
 
 # Male gonad stage 
 print(malstage.wk13 <- table(subset(histo, Week=="13")$TREAT, subset(histo, Week=="13")$MALSTAGE.COL))
-chisq.test(malstage.wk13[-1,], simulate.p.value = T, B = 10000)  # diff! 
+chisq.test(malstage.wk13[2:5,], simulate.p.value = T, B = 10000)  # diff! 
 require(rcompanion)
-pairwiseNominalIndependence(malstage.wk13[2:6,],fisher = TRUE,gtest  = FALSE, chisq  = FALSE, digits = 3)
+pairwiseNominalIndependence(malstage.wk13[2:5,],fisher = TRUE,gtest  = FALSE, chisq  = FALSE, digits = 3)
 
 
 # Female gonad stage 
 print(femalstage.wk13 <- table(subset(histo, Week=="13")$TREAT, subset(histo, Week=="13")$FEMSTAGE.COL))
-chisq.test(femalstage.wk13[-1,], simulate.p.value = T, B = 10000)  #no sign. diff
+chisq.test(femalstage.wk13[2:5,], simulate.p.value = T, B = 10000)  #no sign. diff
 
 
-# Week 15 (first reproductive conditioning sampling)
+# Week 15 (first reproductive conditioning sampling, 2 weeks in conditioning)
 
 print(sex.wk15 <- table(subset(histo, Week=="15")$TREAT, subset(histo, Week=="15")$SEX))
 chisq.test(sex.wk15[2:5,], simulate.p.value = T, B = 10000)  #cant use
@@ -198,14 +127,14 @@ chisq.test(sex.wk15.col[2:5,-1], simulate.p.value = T, B = 10000)  #no sign. dif
 
 # Male gonad stage 
 print(malstage.wk15 <- table(subset(histo, Week=="15")$TREAT, subset(histo, Week=="15")$MALSTAGE.COL))
-chisq.test(malstage.wk15[2:5,], simulate.p.value = T, B = 10000)  #Yes diff. 
+chisq.test(malstage.wk15[2:5,], simulate.p.value = T, B = 10000)  #Yes diff. p-value = 0.0189
 
 # Female gonad stage 
 print(femalstage.wk15 <- table(subset(histo, Week=="15")$TREAT, subset(histo, Week=="15")$FEMSTAGE.COL))
 chisq.test(femalstage.wk15[2:5,-5], simulate.p.value = T, B = 10000)  #no sign. diff
 
 
-# Week 16 (last sampling, 3rd week of reproductive conditioning
+# Week 16 (last sampling, 3rd week of reproductive conditioning)
 
 print(sex.wk16 <- table(subset(histo, Week=="16")$TREAT, subset(histo, Week=="16")$SEX))
 fisher.test(sex.wk16[2:5,], simulate.p.value = T, B = 10000)  #yes diff 
@@ -217,7 +146,8 @@ chisq.test(sex.wk16.col[2:5,-1], simulate.p.value = T, B = 10000)  #no sign. dif
 
 # Male gonad stage 
 print(malstage.wk16 <- table(subset(histo, Week=="16")$TREAT, subset(histo, Week=="16")$MALSTAGE.COL))
-chisq.test(malstage.wk16[2:5,], simulate.p.value = T, B = 10000)  #Yes diff. 
+chisq.test(malstage.wk16[2:5,], simulate.p.value = T, B = 10000)  #Yes diff. p-value = 0.008699
+pairwiseNominalIndependence(malstage.wk16[2:5,],fisher = TRUE,gtest  = FALSE, chisq  = FALSE, digits = 3)
 
 # Female gonad stage 
 print(femalstage.wk16 <- table(subset(histo, Week=="16")$TREAT, subset(histo, Week=="16")$FEMSTAGE.COL))
@@ -236,13 +166,86 @@ chisq.test(sex.wkcond.col[2:5,-1], simulate.p.value = T, B = 10000)  #no sign. d
 
 # Male gonad stage 
 print(malstage.wkcond <- table(subset(histo, Week=="15" | Week=="16")$TREAT, subset(histo, Week=="15" | Week=="16")$MALSTAGE.COL))
-chisq.test(malstage.wkcond[2:5,], simulate.p.value = T, B = 10000)  #Yes diff
+chisq.test(malstage.wkcond[2:5,], simulate.p.value = T, B = 10000)  #Yes diff p-value = 0.0014
 pairwiseNominalIndependence(malstage.wkcond[2:5,],fisher = TRUE,gtest  = FALSE, chisq  = FALSE, digits = 3)
 
 
 # Female gonad stage 
 print(femalstage.wkcond <- table(subset(histo, Week=="15" | Week=="16")$TREAT, subset(histo, Week=="15" | Week=="16")$FEMSTAGE.COL))
 chisq.test(femalstage.wkcond[2:5,], simulate.p.value = T, B = 10000)  #no sign. diff
+
+## More comparisons
+
+# Week 3 
+
+print(sex.wk3 <- table(subset(histo, Week=="3")$TREAT, subset(histo, Week=="3")$SEX))
+chisq.test(sex.wk3[2:5,-1], simulate.p.value = T, B = 10000)  #no sign. diff
+
+# Collapsed sex designations (HPF = F, etc.)
+print(sex.wk3.col <- table(subset(histo, Week=="3")$TREAT, subset(histo, Week=="3")$SEX.COL))
+fisher.test(sex.wk3.col[2:5,-1], simulate.p.value = T, B = 10000)  #no sign. diff
+
+# Male gonad stage 
+print(malstage.wk3 <- table(subset(histo, Week=="3")$TREAT, subset(histo, Week=="3")$MALSTAGE.COL))
+chisq.test(malstage.wk3[2:5,], simulate.p.value = T, B = 10000)  #no sign. diff
+
+# Female gonad stage 
+print(femalstage.wk3 <- table(subset(histo, Week=="3")$TREAT, subset(histo, Week=="3")$FEMSTAGE.COL))
+chisq.test(femalstage.wk3[2:5,], simulate.p.value = T, B = 10000)  #no sign. diff
+
+
+# Week 5 
+
+print(sex.wk5 <- table(subset(histo, Week=="5")$TREAT, subset(histo, Week=="5")$SEX))
+chisq.test(sex.wk5[2:5,-1], simulate.p.value = T, B = 10000)  #no sign. diff
+
+# Collapsed sex designations (HPF = F, etc.)
+print(sex.wk5.col <- table(subset(histo, Week=="5")$TREAT, subset(histo, Week=="5")$SEX.COL))
+fisher.test(sex.wk5.col[2:5,-1], simulate.p.value = T, B = 10000)  #p-value = 0.0436 
+
+# Male gonad stage 
+print(malstage.wk5 <- table(subset(histo, Week=="5")$TREAT, subset(histo, Week=="5")$MALSTAGE.COL))
+chisq.test(malstage.wk5[2:5,], simulate.p.value = T, B = 10000)  #no sign. diff
+
+# Female gonad stage 
+print(femalstage.wk5 <- table(subset(histo, Week=="5")$TREAT, subset(histo, Week=="5")$FEMSTAGE.COL))
+fisher.test(femalstage.wk5[2:5,], simulate.p.value = T, B = 10000)  #no sign. diff
+
+
+# Week 8 
+
+print(sex.wk8 <- table(subset(histo, Week=="8")$TREAT, subset(histo, Week=="8")$SEX))
+chisq.test(sex.wk8[2:5,-1], simulate.p.value = T, B = 10000)  #no sign. diff
+
+# Collapsed sex designations (HPF = F, etc.)
+print(sex.wk8.col <- table(subset(histo, Week=="8")$TREAT, subset(histo, Week=="8")$SEX.COL))
+fisher.test(sex.wk8.col[2:5,-1], simulate.p.value = T, B = 10000)  #no sign. diff
+
+# Male gonad stage 
+print(malstage.wk8 <- table(subset(histo, Week=="8")$TREAT, subset(histo, Week=="8")$MALSTAGE.COL))
+chisq.test(malstage.wk8[2:5,], simulate.p.value = T, B = 10000)  #no sign. diff
+
+# Female gonad stage 
+print(femalstage.wk8 <- table(subset(histo, Week=="8")$TREAT, subset(histo, Week=="8")$FEMSTAGE.COL))
+chisq.test(femalstage.wk8[2:5,], simulate.p.value = T, B = 10000)  #no sign. diff
+
+
+# Week 10 
+
+print(sex.wk10 <- table(subset(histo, Week=="10")$TREAT, subset(histo, Week=="10")$SEX))
+chisq.test(sex.wk10[2:5,], simulate.p.value = T, B = 10000)  #no sign. diff
+
+# Collapsed sex designations (HPF = F, etc.)
+print(sex.wk10.col <- table(subset(histo, Week=="10")$TREAT, subset(histo, Week=="10")$SEX.COL))
+chisq.test(sex.wk10.col[2:5,-1], simulate.p.value = T, B = 10000)  #no sign. diff
+
+# Male gonad stage 
+print(malstage.wk10 <- table(subset(histo, Week=="10")$TREAT, subset(histo, Week=="10")$MALSTAGE.COL))
+chisq.test(malstage.wk10[2:5,], simulate.p.value = T, B = 10000)  #no sign. diff
+
+# Female gonad stage 
+print(femalstage.wk10 <- table(subset(histo, Week=="10")$TREAT, subset(histo, Week=="10")$FEMSTAGE.COL))
+fisher.test(femalstage.wk10[2:5,], simulate.p.value = T, B = 10000)  #no sign. diff
 
 
 # Compare Weeks 0 to 13
@@ -305,14 +308,22 @@ oocyte.meanlength.test <- aggregate(Length ~ Sample+TEMP+FOOD+Week+TREAT+TREAT.N
 summary(aov(Length ~ TEMP*FOOD, data=subset(oocyte.meanlength.test, TEMP!="Wild")))
 
 #Plot mean oocyte length for each oyster sample, by treatment 
-pdf(file="results/Stage3-oocyte-size.pdf", width=5, height=6)
-ggplot(data=subset(oocyte.meanlength, TREAT!="Wild"), aes(x=as.factor(Week), y=Length, fill=TEMP)) + geom_boxplot() + theme_bw(base_size = 13) + ggtitle(label = "Stage 3 oocyte size\nweeks 13-16") + ylab("Maximum oocyte length (um)") + scale_fill_manual(values=c("slategray", "slategray1", "lightcoral",  "rosybrown1"), name=element_blank(), labels = c("Cold / High Food", "Cold / Low Food", "Warm / High Food", "Warm / Low Food")) + theme(axis.title.x=element_blank(), axis.text.x=element_blank(),axis.ticks.x=element_blank()) 
-dev.off()
+
+# Relevel food factors such that Low comes before High
+oocyte.meanlength$FOOD <- factor(oocyte.meanlength$FOOD, levels = rev(levels(oocyte.meanlength$FOOD)))
 
 pdf(file="results/Stage3-oocyte-size.pdf", width=5.5, height=6)
-ggplot(data=subset(oocyte.meanlength, TREAT!="Wild"), aes(x=TREAT.NAME, y=Length, col=TREAT.NAME)) + geom_boxplot(lwd=0.5) + theme_bw(base_size = 11) + ggtitle(label = "Ripe oocyte size") + ylab("Maximum oocyte length (um)") + scale_color_manual(values=c('#0571b0','#92c5de','#ca0020','#f4a582'), name=element_blank(), labels = c("7°C+high-food", "7°C+low-food", "10°C+high-food", "10°C+low-food")) + theme(axis.title.x=element_blank(), axis.text.x=element_blank(),axis.ticks.x=element_blank()) + geom_jitter(width = .2,aes(shape=as.factor(Week)),size=2) + scale_shape_manual(values=c(15,16,17), name="Date Oocyte Sampled", labels=c("February 27", "March 13", "March 23"))
+ggplot(data=subset(oocyte.meanlength, TREAT!="Wild"), 
+       aes(x=FOOD:TEMP, y=Length, col=FOOD:TEMP)) + 
+  geom_boxplot(lwd=0.5) + theme_bw(base_size = 11) + 
+  ggtitle(label = "Ripe oocyte size") + ylab("Maximum oocyte length (µm)") + 
+  scale_color_manual(values=c('#92c5de','#f4a582','#0571b0','#ca0020'), name=element_blank(),
+                     labels = c( "Low-food+7°C", "Low-food+10°C","High-food+7°C","High-food+10°C")) +
+  theme(axis.title.x=element_blank(), axis.text.x=element_blank(), 
+        axis.ticks.x=element_blank(), legend.position = "left") + 
+  geom_jitter(width = .2,aes(shape=as.factor(Week)),size=2) + 
+  scale_shape_manual(values=c(15,16,17), name="Date oocyte sampled", labels=c("February 27", "March 13", "March 23"))
 dev.off()
-#c(1,2,0)
 
 ggplot(aes(x=TEMP:FOOD, y=Length)) + 
   geom_boxplot(lwd=0.5, aes(col=TEMP:FOOD), outlier.shape = NA)
@@ -395,6 +406,11 @@ pdf(file = "results/sex-line-plots.pdf", width = 4.5, height = 8)
 do.call(grid.arrange, c(c(p[1], p[2], p[3], p[4], p[5]), list(ncol=1, nrow=5)))
 dev.off()
 
+# Plot without wild samples 
+pdf(file = "results/sex-line-plots-nowild.pdf", width = 4.5, height = 8)
+do.call(grid.arrange, c(c(p[2], p[3], p[4], p[5]), list(ncol=1, nrow=4)))
+dev.off()
+
 pdf(file = "results/sex-line-plots-legend.pdf", width = 4.5, height = 2)
 ggplot(data=subset(sexcol.treats[[i]], Var1!="0" & (Var2=="F" | Var2=="M" | Var2=="H")), aes(x=Var1, y=Freq, group=Var2, col=Var2)) + geom_line() + theme_bw(base_size = 12) + geom_point(size=2.5) +
   theme(axis.title.x=element_blank(), axis.title.y=element_blank(), legend.position = "bottom",
@@ -445,6 +461,11 @@ pdf(file = "results/malestage-line-plots.pdf", width = 4.8, height = 8)
 do.call(grid.arrange, c(c(p[1], p[2], p[3], p[4], p[5]), list(ncol=1, nrow=5)))
 dev.off()
 
+# Plot without wild 
+pdf(file = "results/malestage-line-plots-nowild.pdf", width = 4.8, height = 8)
+do.call(grid.arrange, c(c(p[2], p[3], p[4], p[5]), list(ncol=1, nrow=4)))
+dev.off()
+
 # Generate plot just for legend 
 pdf(file = "results/malestage-line-plots-legend.pdf", width = 4.5, height = 2)
 ggplot(data=subset(malestage.treats[[i]], Var1!="0" & Var2!="0"), aes(x=Var1, y=Freq, group=Var2, col=Var2)) + geom_line() + theme_bw(base_size = 12) + geom_point(size=2.5) + theme(axis.title.x=element_blank(), axis.title.y=element_blank(), legend.position = "bottom", axis.text.y = element_blank(), axis.ticks.y = element_blank(), legend.title=element_text(size=14), legend.text = element_text(size=14))  + guides(color = guide_legend(override.aes = list(size=6))) + scale_x_discrete(labels= c("Dec 20", "Jan 4", "Jan 23", "Feb 9", "Feb 27", "Mar 13", "Mar 23")) + 
@@ -477,6 +498,11 @@ for (i in 2:length(treats)){
 }
 pdf(file = "results/femalestage-line-plots.pdf", width = 4.5, height = 8)
 do.call(grid.arrange, c(c(p[1], p[2], p[3], p[4], p[5]), list(ncol=1, nrow=5)))
+dev.off()
+
+# plot without wild 
+pdf(file = "results/femalestage-line-plots-nowild.pdf", width = 4.5, height = 8)
+do.call(grid.arrange, c(c(p[2], p[3], p[4], p[5]), list(ncol=1, nrow=4)))
 dev.off()
 
 pdf(file = "results/femalestage-line-plots-legend.pdf", width = 4.5, height = 2)

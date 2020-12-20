@@ -4,26 +4,33 @@
 
 mean(subset(histo, TREAT!="Wild")$Length..cm., na.rm=TRUE)*10
 sd(subset(histo, TREAT!="Wild")$Length..cm., na.rm=TRUE)*10
-View(histo)
+
 size.adult <- histo %>%
   filter(!is.na(TREAT)) %>%
   group_by(TREAT, Week) %>%
-  summarize(mean_length = mean(Length..cm., na.rm = TRUE), sd_length = sd(Length..cm., na.rm = TRUE),
-            mean_weight = mean(Est..Tissue.Weight..g., na.rm = TRUE), sd_weight = sd(Est..Tissue.Weight..g., na.rm = TRUE))
+  summarize(mean_length = mean(Length..cm., na.rm = TRUE), 
+            sd_length = sd(Length..cm., na.rm = TRUE),
+            mean_weight = mean(Est..Tissue.Weight..g., na.rm = TRUE),
+            sd_weight = sd(Est..Tissue.Weight..g., na.rm = TRUE))
 size.adult[(nrow(size.adult)+1):(nrow(size.adult)+5),] <- size.adult[1,]
 size.adult[(nrow(size.adult)-4):(nrow(size.adult)),"TREAT"] <- as.factor(c("A", "B", "C", "D", "Wild"))
 
 # subset(size.adult, Week!=0 & TREAT!="Wild")
 # plot mean weight over time 
 
-pdf("results/broodstock-weight.pdf", width = 7, height = 3.5)
-ggplot(data=subset(size.adult, TREAT!="PRE" & mean_weight<3.5), aes(x=Week, y=mean_weight/mean_length, group=TREAT, col=TREAT)) + geom_line() + theme_bw(base_size = 11) + geom_point(size=3) + ylab("Mean weight standardized by shell length (g/cm)") + ggtitle(label = "Mean plumpness of broodstock over time") + theme(axis.title.x = element_blank()) +
+pdf("results/broodstock-weight.pdf", width = 6, height = 3.5)
+ggplot(data=subset(size.adult, TREAT!="PRE" & TREAT!="Wild" & mean_weight<3.5), 
+       aes(x=Week, y=mean_weight/mean_length, group=TREAT, col=TREAT)) + 
+  geom_line() + theme_bw(base_size = 11) + geom_point(size=3) + 
+  ylab("Mean wet tissue weight / shell length (g/cm)") + 
+  ggtitle(label = "Adult tissue weight (standardized by length) over time") + 
+  theme(axis.title.x = element_blank(), legend.position = "none") +
   scale_color_manual(
     values=c("#0571b0","#92c5de","#ca0020","#f4a582","gray30"),
     name="Treatment",
                         breaks=c("C", "A", "D", "B", "Wild"),
                         labels=c("7°C+high-food", "7°C+low-food", "10°C+high-food", "10°C+low-food", "Wild")) +
-  scale_x_discrete(labels= c("Nov 30", "Dec 20", "Jan 4", "Jan 23", "Feb 9", "Feb 27", "Mar 3", "Mar 23")) #+ 
+  scale_x_discrete(labels= c("Nov 30", "Dec 20", "Jan 4", "Jan 23", "Feb 9", "Feb 27", "Mar 3", "Mar 23")) 
   #geom_vline(xintercept = 4.1, linetype="dashed", color = "gray50", size=.5) + 
   #geom_vline(xintercept = 6.1, linetype="solid", color = "gray50", size=.5)
 #+geom_errorbar(aes(ymin=mean_weight-sd_weight, ymax=mean_weight+sd_weight), width=.1)
